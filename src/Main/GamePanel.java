@@ -1,5 +1,6 @@
 package Main;
 
+import GameState.GameStateManager;
 import javax.swing.JPanel;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -21,10 +22,14 @@ public class GamePanel extends JPanel implements Runnable, KeyListener
     private int FPS = 60;
     private long milis = 1000/FPS;
 
-    //imagen
+    // imagen
 
     private BufferedImage imagea;
     private Graphics2D g;
+
+    //  estado del juego
+
+    private GameStateManager gsm;
 
     public GamePanel()
     {
@@ -51,6 +56,8 @@ public class GamePanel extends JPanel implements Runnable, KeyListener
         g = (Graphics2D) g;
 
         running = true;
+
+        gsm = new GameStateManager();
     }
 
     public void run()
@@ -85,12 +92,12 @@ public class GamePanel extends JPanel implements Runnable, KeyListener
 
     private void update()
     {
-
+        gsm.update();
     }
 
     private void draw()
     {
-        
+        gsm.draw(g);
     }
 
     private void drawToScreen()
@@ -106,10 +113,10 @@ public class GamePanel extends JPanel implements Runnable, KeyListener
     }
     public void keyPressed(keyEvent key)
     {
-
+        gsm.keyPressed(key.getKeyCode());
     }
     public void keyReleased(keyEvent key)
     {
-
+        gsm.keyReleased(key.getKeyCode());
     }
 }
