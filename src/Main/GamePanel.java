@@ -8,6 +8,9 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.event.*;
 
+//javac -d bin -sourcepath src src/Main/*.java
+//java -cp bin Main.Game
+
 public class GamePanel extends JPanel implements Runnable, KeyListener
 {
 
