@@ -13,7 +13,6 @@ public class MenuState extends GameState
 	private int currentChoice = 0;
 	private String[] options = {
 		"Start",
-		"Help",
 		"Quit"
 	};
 	
