@@ -44,7 +44,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener
         requestFocus();
     }
 
-    public void addNotify() // inicia el thread cuando carga
+    public void addNotify() // inicia el thread cuando carga.
     {
         super.addNotify();
         if(thread == null)
