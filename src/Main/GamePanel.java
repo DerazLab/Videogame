@@ -109,6 +109,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener
         g2.dispose();
     }
 
+    @Override
     public void keyTiped(KeyEvent key)
     {
 
