@@ -38,7 +38,6 @@ public class Background {
 
     public void draw(Graphics2D g) {
         g.drawImage(image, (int)x, (int)y, null);
-        // Draw second image for seamless scrolling
         if(x < 0) {
             g.drawImage(image, (int)x + image.getWidth(), (int)y, null);
         }
