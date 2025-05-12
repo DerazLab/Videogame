@@ -80,9 +80,6 @@ public class MenuState extends GameState
 			gsm.setState(GameStateManager.INLEVEL);
 		}
 		if(currentChoice == 1) {
-			// help
-		}
-		if(currentChoice == 2) {
 			System.exit(0);
 		}
 	}
