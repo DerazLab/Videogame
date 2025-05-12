@@ -13,7 +13,7 @@ public class GameStateManager
 
     public GameStateManager()
     {
-        gameStates = new ArrayList<GameState>()
+        gameStates = new ArrayList<GameState>();
 
         currentState = INMENU;
         gameStates.add(new MenuState(this));

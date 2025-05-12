@@ -2,9 +2,11 @@ package Main;
 
 import GameState.GameStateManager;
 import javax.swing.JPanel;
-import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.*;
+import java.awt.*;
 import java.awt.event.*;
+import javax.swing.event.*;
 
 public class GamePanel extends JPanel implements Runnable, KeyListener
 {
@@ -107,15 +109,15 @@ public class GamePanel extends JPanel implements Runnable, KeyListener
         g2.dispose();
     }
 
-    public void keyTiped(keyEvent key)
+    public void keyTiped(KeyEvent key)
     {
 
     }
-    public void keyPressed(keyEvent key)
+    public void keyPressed(KeyEvent key)
     {
         gsm.keyPressed(key.getKeyCode());
     }
-    public void keyReleased(keyEvent key)
+    public void keyReleased(KeyEvent key)
     {
         gsm.keyReleased(key.getKeyCode());
     }
