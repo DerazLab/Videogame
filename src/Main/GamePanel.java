@@ -24,7 +24,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener
 
     // imagen
 
-    private BufferedImage imagea;
+    private BufferedImage image;
     private Graphics2D g;
 
     //  estado del juego
