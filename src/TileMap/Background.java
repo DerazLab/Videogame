@@ -5,6 +5,7 @@ import Main.GamePanel;
 import java.awt.*;
 import java.awt.image.*;
 import javax.imageio.ImageIO;
+import java.io.File;
 
 public class Background {
 	
@@ -20,9 +21,7 @@ public class Background {
 	public Background(String s, double ms) {
 		
 		try {
-			image = ImageIO.read(
-				getClass().getResourceAsStream(s)
-			);
+			image = ImageIO.read(new File(s));
 			moveScale = ms;
 		}
 		catch(Exception e) {
@@ -47,16 +46,15 @@ public class Background {
 	}
 	
 	public void draw(Graphics2D g) {
+
+        if(g == null){
+            System.out.println("Graphics2D is null");
+        }
 		
 		g.drawImage(image, (int)x, (int)y, null);
 		
 		if(x < 0) {
-			g.drawImage(
-				image,
-				(int)x + GamePanel.WIDTH,
-				(int)y,
-				null
-			);
+			g.drawImage(image, (int)x + GamePanel.WIDTH, (int)y, null);
 		}
 		if(x > 0) {
 			g.drawImage(

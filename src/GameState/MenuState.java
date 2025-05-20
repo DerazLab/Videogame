@@ -27,7 +27,7 @@ public class MenuState extends GameState
 		
 		try {
 			
-			bg = new Background("/Backgrounds/Sky.png", 1);
+			bg = new Background("Resources/Backgrounds/background.png", 1);
 			bg.setVector(-0.1, 0);
 			
 			titleColor = new Color(128, 0, 0);
@@ -59,7 +59,7 @@ public class MenuState extends GameState
 		// draw title
 		g.setColor(titleColor);
 		g.setFont(titleFont);
-		g.drawString("Mario", 80, 70);
+		g.drawString("Mario", 120, 70);
 		
 		// draw menu options
 		g.setFont(font);
