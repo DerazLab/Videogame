@@ -37,7 +37,31 @@ public class TileMap
     private Tile[][] tiles;
 
     //drawing
-    
+    private int rowOffset;
+    private int colOffset;
+    private int numRowsToDraw;
+    private int numColsToDraw;
+
+    public TileMap(int tileSize)
+    {
+        this.tileSize = tileSize;
+        numRowsToDraw = GamePanel.HEIGHT / tileSize + 2;
+        numColsToDraw = GamePanel.WIDTH / tileSize + 2;
+        tween = 0.07;
+
+        
+    }
+
+    public void loadTiles(String s) 
+    {
+       try
+       {
+            tileset = ImageIO.read(getClass().getResourcesAsStream(s));
+            numTilesAcross = tileset.getWidth() / tileSize
+       } 
+    }
+
+    public void loadMap(String s) {}
 
 
 
