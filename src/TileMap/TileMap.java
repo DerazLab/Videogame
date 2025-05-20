@@ -57,11 +57,26 @@ public class TileMap
        try
        {
             tileset = ImageIO.read(getClass().getResourcesAsStream(s));
-            numTilesAcross = tileset.getWidth() / tileSize
+            numTilesAcross = tileset.getWidth() / tileSize;
+            tiles = new Tile[2][numTilesAcross];
+
+            BufferedImage subimage;
+            for (int col = 0; col < numTilesAcross; col++)
+            {
+               subimage = tileset.getSubimage(col * tileSize, 0, tileSize, tile);
+               tiles[0][col] = new Tile(subimage, Tile.NORMAL);
+               subimage = tileset.getSubimage(col * tileSize, tileSize, tileSize, tileSize);
+               tiles[1][col] = new Tile(subimage, Tile.BLOCKED);
+            
+            
+            }
        } 
     }
 
-    public void loadMap(String s) {}
+    public void loadMap(String s) 
+    {
+
+    }
 
 
 
