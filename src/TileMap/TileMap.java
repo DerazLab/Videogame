@@ -24,6 +24,19 @@ public class TileMap
     private double tween;
 
     // map
+    private int[][] map;
+    private int tileSize;
+    private int numRows;
+    private int numCols;
+    private int width;
+    private int height;
+
+    //tileSet
+    private BufferedImage tileset;
+    private int numTilesAcross;
+    private Tile[][] tiles;
+
+    //drawing
     
 
 
