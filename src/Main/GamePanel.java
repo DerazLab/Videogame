@@ -86,7 +86,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener
             {
                 waitTime = 5; // si el tiempo de espera es negativo, espera un poco para no saturar la CPU
             }
-            
+
             try
             {
                 Thread.sleep(waitTime);
