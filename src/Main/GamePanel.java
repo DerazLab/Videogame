@@ -82,6 +82,10 @@ public class GamePanel extends JPanel implements Runnable, KeyListener
 
             passedTime = System.nanoTime() - startTime;
             waitTime = milis - passedTime / 1000000;
+            if(waitTime < 0)
+            {
+                waitTime = 5; // si el tiempo de espera es negativo, espera un poco para no saturar la CPU
+            }
             
             try
             {
