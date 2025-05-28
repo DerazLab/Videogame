@@ -87,7 +87,7 @@ public class TileMap
             //VIDEO 14:29
 
         }
-        catch (Exception)
+        catch (Exception e)
         {
             e.printStackTrace();
         }
