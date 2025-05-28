@@ -71,6 +71,10 @@ public class TileMap
             
             }
        } 
+       catch (Exception e)
+       {
+            e.printStackTrace();
+       }
     }
 
     public void loadMap(String s) 

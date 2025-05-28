@@ -21,7 +21,7 @@ public class Tile
         return image;
     }
 
-    public int getType
+    public int getType()
     {
         return type;
     }

@@ -20,5 +20,5 @@ public class Level1State extends GameState
     public void update() {}
     public void draw(Graphics2D g) {}
     public void keyPressed(int k) {}
-    pblic void keyReleased(int k) {}
+    public void keyReleased(int k) {}
 }
