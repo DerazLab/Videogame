@@ -1,5 +1,7 @@
 package Main;
 import javax.swing.JFrame;
+//javac -d bin src/GameState/*.java src/Main/*.java src/TileMap/*.java
+//java -cp bin Main.Game
 
 public class Game{
     public static void main(String[] args){

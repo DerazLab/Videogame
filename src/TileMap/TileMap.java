@@ -6,6 +6,9 @@ import java.awt.image.*;
 import java.io.*;
 import javax.imageio.ImageIO;
 
+import Main.GamePanel;
+
+
 public class TileMap
 {
 
@@ -56,14 +59,14 @@ public class TileMap
     {
        try
        {
-            tileset = ImageIO.read(getClass().getResourcesAsStream(s));
+            tileset = ImageIO.read(getClass().getResourceAsStream(s));
             numTilesAcross = tileset.getWidth() / tileSize;
             tiles = new Tile[2][numTilesAcross];
 
             BufferedImage subimage;
             for (int col = 0; col < numTilesAcross; col++)
             {
-               subimage = tileset.getSubimage(col * tileSize, 0, tileSize, tile);
+               subimage = tileset.getSubimage(col * tileSize, 0, tileSize, tileSize);
                tiles[0][col] = new Tile(subimage, Tile.NORMAL);
                subimage = tileset.getSubimage(col * tileSize, tileSize, tileSize, tileSize);
                tiles[1][col] = new Tile(subimage, Tile.BLOCKED);
@@ -82,6 +85,7 @@ public class TileMap
         try
         {
             InputStream in = getClass().getResourceAsStream(s);
+	    //InputStream in  = getClass().getClassLoader().getResourceAsStream(s);
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
         
             numCols = Integer.parseInt(br.readLine());
