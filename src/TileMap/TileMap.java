@@ -84,7 +84,22 @@ public class TileMap
             InputStream in = getClass().getResourceAsStream(s);
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
         
-            //VIDEO 14:29
+            numCols = Integer.parseInt(br.readLine());
+            numRows = Integer.parseInt(br.readLine());
+            map = new int[numRows][numCols];
+            width = numCols * tileSize;
+            height = numRows * tileSize;
+
+            String delims = "\\s+";
+            for (int row = 0; row < numRows; row++)
+            {
+                String line = br.readLine();
+                String[] tokens = line.split(delims);
+                for (int col = 0; col < numCols; col++)
+                {
+                    map[row][col] = Integer.parseInt(tokens[col]);
+                }
+            }
 
         }
         catch (Exception e)
@@ -93,7 +108,76 @@ public class TileMap
         }
     }
 
+    public int getTileSize() 
+    {
+        return tileSize;
+    }
+    public int getX() 
+    {
+        return (int)x;
+    }
+    public int getY() 
+    {
+        return (int)y;
+    }
+    public int getWidth() 
+    {
+        return width;
+    }
+    public int getHeight() 
+    {
+        return height;
+    }
+    public int getType(int row, int col) 
+    {
+        int rc = map[row][col];
+        int r = rc / numTilesAcross;
+        int c = rc % numTilesAcross;
+        return tiles[r][c].getType();
+    }
 
+    public void setPosition(double x, double y) 
+    {
+        this.x += (x - this.x) * tween;
+        this.y += (y - this.y) * tween;
+
+        fixBounds();
+
+        colOffset = (int)-this.x / tileSize;
+        rowOffset = (int)-this.y / tileSize;
+    }
+
+    public void fixBounds()
+    {
+        // make sure position is within bounds
+        if (this.x < xmin) this.x = xmin;
+        if (this.y < ymin) this.y = ymin;
+        if (this.x > xmax - GamePanel.WIDTH) this.x = xmax - GamePanel.WIDTH;
+        if (this.y > ymax - GamePanel.HEIGHT) this.y = ymax - GamePanel.HEIGHT;
+    }
+
+    public void draw(Graphics2D g) 
+    {
+        for (int row = rowOffset; row < rowOffset + numRowsToDraw; row++)
+        {
+            if (row >= numRows) break;
+            if (row < 0) continue;
+
+            for (int col = colOffset; col < colOffset + numColsToDraw; col++)
+            {
+                if (col >= numCols) break;
+                if (map[row][col] == 0) continue;
+
+                int rc = map[row][col];
+                if (rc == 0) continue;
+
+                int r = rc / numTilesAcross;
+                int c = rc % numTilesAcross;
+
+                g.drawImage(tiles[r][c].getImage(), (int)x + col * tileSize, (int)y + row * tileSize, null);
+            }
+        }
+    }
 
 
 }
