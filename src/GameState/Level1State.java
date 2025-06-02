@@ -1,5 +1,7 @@
 package GameState;
 
+import TileMap.TileMap;
+
 import java.awt.*;
 
 public class Level1State extends GameState
