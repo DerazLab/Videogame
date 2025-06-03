@@ -2,14 +2,18 @@ package GameState;
 
 import TileMap.*;
 import Main.GamePanel;
+import Entity.*;
 
 import java.awt.*;
+
 
 public class Level1State extends GameState
 {
 
     private TileMap tileMap;
     private Background bg;
+
+    private Player player;
     
     public Level1State(GameStateManager gsm)
     {
@@ -25,9 +29,16 @@ public class Level1State extends GameState
         tileMap.setPosition(0, 0);
 
         bg = new Background ("Resources/Backgrounds/SkyBackground.png", 0.1);
+
+        player = new Player(tileMap);
+        player.setPosition(100, 100);
     }
 
-    public void update() {}
+    public void update() 
+    {
+        player.update();
+    }
+
     public void draw(Graphics2D g) 
     {
         //draw background
@@ -36,6 +47,8 @@ public class Level1State extends GameState
         //g.fillRect(0, 0, GamePanel.WIDTH, GamePanel.HEIGHT);
 
         tileMap.draw(g);
+
+        player.draw(g);
     }
     public void keyPressed(int k) {}
     public void keyReleased(int k) {}
