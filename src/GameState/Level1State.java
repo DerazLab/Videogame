@@ -30,7 +30,7 @@ public class Level1State extends GameState
     public void update() {}
     public void draw(Graphics2D g) 
     {
-        g.setColor(Color.BLACK);
+        g.setColor(Color.RED);
         g.fillRect(0, 0, GamePanel.WIDTH, GamePanel.HEIGHT);
 
         tileMap.draw(g);
