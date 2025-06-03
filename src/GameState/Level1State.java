@@ -1,6 +1,6 @@
 package GameState;
 
-import TileMap.TileMap;
+import TileMap.*;
 import Main.GamePanel;
 
 import java.awt.*;
