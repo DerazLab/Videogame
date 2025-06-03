@@ -160,10 +160,14 @@ public abstract class MapObject
 
         if (dx > 0)
         {
-            if (toprIGHT || bottomrIGHT)
+            if (topRight || bottomRight)
             {
                 dx = 0;
                 xtemp = (currCol + 1 ) * tileSize - cwidth / 2;
+            }
+            else
+            {
+                xtemp += dx;
             }
             
         }
