@@ -98,25 +98,28 @@ public class TileMap
         map = new int[numRows][numCols];
         width = numCols * tileSize;
         height = numRows * tileSize;
+
         // Set bounds to allow full map visibility
+        /*
         xmin = 0;
         ymin = 0;
         xmax = width;
         ymax = height;
+        */
 
-        /* //CAMBIAR POR ESTO PARA QUE LA CAMARA SE MUEVA JUNTO CON EL PERSONAJE (BUGEADO POR EL MOMENTO ... )
+         //CAMBIAR POR ESTO PARA QUE LA CAMARA SE MUEVA JUNTO CON EL PERSONAJE (BUGEADO POR EL MOMENTO ... )
         xmin = GamePanel.WIDTH  - width;
         ymin = GamePanel.HEIGHT - height;
         xmax = 0;
-        ymax = 0;
-        */
+        ymax = 600;
+        
 
         String delims = "\\s+";
         for (int row = 0; row < numRows; row++)
         {
             String line = br.readLine();
             if (line == null) {
-                throw new IOException("Unexpected end of file in " + s);
+                throw new IOException("Fin inesperado al leer el archivo: " + s);
             }
             String[] tokens = line.split(delims);
             for (int col = 0; col < numCols; col++)
