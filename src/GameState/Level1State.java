@@ -32,7 +32,7 @@ public class Level1State extends GameState
         bg = new Background ("Resources/Backgrounds/SkyBackground.png", 0.1);
 
         player = new Player(tileMap);
-        player.setPosition(100, 100);
+        player.setPosition(300, 100);
     }
 
     public void update() 
