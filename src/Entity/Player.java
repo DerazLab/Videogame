@@ -92,11 +92,10 @@ public class Player extends MapObject
 			);
 			
 			sprites = new ArrayList<BufferedImage[]>();
-			for(int i = 0; i < 7; i++) 
+			for(int i = 0; i < numFrames.length; i++) 
 			{
 				
-				BufferedImage[] bi =
-					new BufferedImage[numFrames[i]];
+				BufferedImage[] bi = new BufferedImage[numFrames[i]];
 				
 				for(int j = 0; j < numFrames[i]; j++) 
 				{
@@ -117,11 +116,21 @@ public class Player extends MapObject
 		}
 		catch(Exception e) 
 		{
+			System.err.println("Error al cargar sprites: " + e.getMessage());
 			e.printStackTrace();
 		}
 
 		animation = new Animation();
 		currentAction = IDLE;
+
+
+		//DEBUG
+		if (sprites == null || sprites.isEmpty()) 
+		{
+    		throw new IllegalStateException("Lista de sprites no inicializada");
+		}
+		// -------------------------------------------------
+
 		animation.setFrames(sprites.get(IDLE));
 		animation.setDelay(400);
 
