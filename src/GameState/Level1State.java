@@ -24,7 +24,7 @@ public class Level1State extends GameState
         tileMap.loadMap("Resources/Maps/level1.map");
         tileMap.setPosition(0, 0);
 
-        bg = new Background ("/Backgrounds/SkyBackground.png", 0.1);
+        bg = new Background ("Resources/Backgrounds/SkyBackground.png", 0.1);
     }
 
     public void update() {}
