@@ -19,15 +19,15 @@ public class Level1State extends GameState
     public void init() 
     {
         tileMap = new TileMap(16);
-        tileMap.loadTiles("/Tilesets/tileset1.png");
-        tileMap.loadMap("/Maps/level1.map");
+        tileMap.loadTiles("Tilesets/tileset1.png");
+        tileMap.loadMap("Maps/level1.map");
         tileMap.setPosition(0, 0);
     }
 
     public void update() {}
     public void draw(Graphics2D g) 
     {
-        g.setColor(Color.BLACK);
+        g.setColor(Color.RED);
         g.fillRect(0, 0, GamePanel.WIDTH, GamePanel.HEIGHT);
 
         tileMap.draw(g);
