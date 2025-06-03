@@ -206,6 +206,7 @@ public class Player extends MapObject
 		if(jumping && !falling) {
 			dy = jumpStart;
 			falling = true;	
+			System.out.println("falling True");
 		}
 		
 		// falling
@@ -216,6 +217,7 @@ public class Player extends MapObject
 			dy += fallSpeed;
 			
 			if(dy > 0) jumping = false;
+			System.out.println("falling false");
 			if(dy < 0 && !jumping) dy += stopJumpSpeed;
 			
 			if(dy > maxFallSpeed) dy = maxFallSpeed;
