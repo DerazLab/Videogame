@@ -111,7 +111,7 @@ public class TileMap
          //CAMBIAR POR ESTO PARA QUE LA CAMARA SE MUEVA JUNTO CON EL PERSONAJE (BUGEADO POR EL MOMENTO ... )
         xmin = GamePanel.WIDTH  - width;
         ymin = GamePanel.HEIGHT - height;
-        xmax = 0;
+        xmax = 320;
         ymax = 600;
         
 
