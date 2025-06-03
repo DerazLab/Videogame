@@ -99,10 +99,10 @@ public class TileMap
         width = numCols * tileSize;
         height = numRows * tileSize;
         // Set bounds to allow full map visibility
-        xmin = 0;
-        ymin = 0;
-        xmax = width;
-        ymax = height;
+        xmin = GamePanel.WIDTH  - width;
+        ymin = GamePanel.HEIGHT - height;
+        xmax = 0;
+        ymax = 0t;
 
         String delims = "\\s+";
         for (int row = 0; row < numRows; row++)
