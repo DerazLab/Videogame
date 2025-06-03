@@ -86,103 +86,79 @@ public abstract class MapObject
         );
     }
 
-    public void calculateCorners(double x, double y)
-    {
-        int leftTile = (int)(x - cwidth / 2) / tileSize;
-        int rightTile = (int)(x - cwidth / 2 - 1) / tileSize;
-        int topTile = (int)(y - cheight / 2) / tileSize;
-        int bottomTile = (int)(y + cheight / 2 - 1)/ tileSize;
+    public void calculateCorners(double x, double y) {
+    int leftTile = (int)(x - cwidth / 2) / tileSize;
+    int rightTile = (int)(x + cwidth / 2) / tileSize; // Corregido
+    int topTile = (int)(y - cheight / 2) / tileSize;
+    int bottomTile = (int)(y + cheight / 2 - 1) / tileSize;
 
-        int tl = tileMap.getType(topTile, leftTile);
-        int tr = tileMap.getType(topTile, rightTile);
-        int bl = tileMap.getType(bottomTile, leftTile);
-        int br = tileMap.getType(bottomTile, rightTile);
+    int tl = tileMap.getType(topTile, leftTile);
+    int tr = tileMap.getType(topTile, rightTile);
+    int bl = tileMap.getType(bottomTile, leftTile);
+    int br = tileMap.getType(bottomTile, rightTile);
 
-        topLeft = tl == Tile.BLOCKED;
-        topRight = tr == Tile.BLOCKED;
-        bottomLeft = bl == Tile.BLOCKED;
-        bottomRight = br == Tile.BLOCKED;
-    }
+    topLeft = tl == Tile.BLOCKED;
+    topRight = tr == Tile.BLOCKED;
+    bottomLeft = bl == Tile.BLOCKED;
+    bottomRight = br == Tile.BLOCKED;
+}
 
     //Verificar si nos hemos tomado con un NormalTile o un BlockTile
-    public void checkTileMapCollision()
-    {
-        currCol = (int)x / tileSize;
-        currRow = (int)y / tileSize;
+    public void checkTileMapCollision() {
+    currCol = (int)x / tileSize;
+    currRow = (int)y / tileSize;
 
-        xdest = x + dx;
-        ydest = y + dy;
+    xdest = x + dx;
+    ydest = y + dy;
 
-        xtemp = x;
-        ytemp = y;
+    xtemp = x;
+    ytemp = y;
 
-        calculateCorners(x, ydest);
-        //si vamos hacia arriba
-        if (dy < 0)
-        {
-            if (topLeft || topRight) //chocamos con algo
-            {
-                dy = 0;
-                ytemp = currRow * tileSize + cheight / 2;
-            }
-            else
-            {
-                ytemp += dy;
-            }
+    calculateCorners(x, ydest);
+    // Si vamos hacia arriba
+    if (dy < 0) {
+        if (topLeft || topRight) {
+            dy = 0;
+            ytemp = currRow * tileSize + cheight / 2;
+        } else {
+            ytemp += dy;
         }
-        //Si vamos hacia abajo
-        if (dy > 0)
-        {
-            if (bottomLeft || bottomRight)
-            {
-                dy = 0; //parar la direccion Y
-                falling = false;
-                ytemp = (currRow +1) * tileSize - cheight / 2;
-            }
-            else
-            {
-                ytemp += dy;
-            }
-        }
-
-        calculateCorners(xdest, y);
-        if (dx < 0)
-        {
-            if (topLeft || bottomLeft)
-            {
-                dx = 0;
-                xtemp = currCol * tileSize + cwidth / 2;
-            }
-            else
-            {
-                xtemp += dx;
-            }
-        }
-
-        if (dx > 0)
-        {
-            if (topRight || bottomRight)
-            {
-                dx = 0;
-                xtemp = (currCol + 1 ) * tileSize - cwidth / 2;
-            }
-            else
-            {
-                xtemp += dx;
-            }
-            
-        }
-
-        if (!falling)
-        {
-            calculateCorners(x, ydest + 1);
-            if(!bottomLeft && !bottomRight)
-            {
-                falling = true;
-            }
-        }
-
     }
+    // Si vamos hacia abajo
+    if (dy > 0) {
+        if (bottomLeft || bottomRight) {
+            dy = 0;
+            falling = false;
+            ytemp = (currRow + 1) * tileSize - cheight / 2;
+        } else {
+            ytemp += dy;
+        }
+    }
+
+    calculateCorners(xdest, y);
+    if (dx < 0) {
+        if (topLeft || bottomLeft) {
+            xtemp = currCol * tileSize + cwidth / 2 + 0.1; // Margen pequeño
+        } else {
+            xtemp += dx;
+        }
+    }
+
+    if (dx > 0) {
+        if (topRight || bottomRight) {
+            xtemp = (currCol + 1) * tileSize - cwidth / 2 - 0.1; // Margen pequeño
+        } else {
+            xtemp += dx;
+        }
+    }
+
+    if (!falling) {
+        calculateCorners(x, ydest + 1);
+        if (!bottomLeft && !bottomRight) {
+            falling = true;
+        }
+    }
+}
 
 
     public int getx() {return (int)x;}
