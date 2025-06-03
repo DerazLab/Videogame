@@ -32,11 +32,11 @@ public class Animation
     {
         if (delay == - 1) return;
 
-        long elapsed = (System.nanoTime() - startTime) / 1000000
+        long elapsed = (System.nanoTime() - startTime) / 1000000;
         if (elapsed > delay)
         {
             currentFrame++;
-            startTime = system.nanoTime();
+            startTime = System.nanoTime();
         }
         if (currentFrame == frames.length)
         {

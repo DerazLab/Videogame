@@ -47,7 +47,7 @@ public abstract class MapObject
 
     // Movement
     protected boolean left;
-    protected boolean topRight;
+    protected boolean right;
     protected boolean up;
     protected boolean down;
     protected boolean jumping;
@@ -136,7 +136,7 @@ public abstract class MapObject
             {
                 dy = 0; //parar la direccion Y
                 falling = false;
-                ytemp = (currRow +1) * tileSize - cheight / 2
+                ytemp = (currRow +1) * tileSize - cheight / 2;
             }
             else
             {
@@ -172,7 +172,7 @@ public abstract class MapObject
             
         }
 
-        IF (!falling)
+        if (!falling)
         {
             calculateCorners(x, ydest + 1);
             if(!bottomLeft && !bottomRight)
@@ -188,7 +188,7 @@ public abstract class MapObject
     
     public int gety() {return (int)y;}
     
-    public int getWidth()) {return width;}
+    public int getWidth() {return width;}
     
     public int getHeight() {return height;}
 
@@ -202,7 +202,7 @@ public abstract class MapObject
         this.y = y;
     }
 
-    public void setVector(double dx, dobule dy)
+    public void setVector(double dx, double dy)
     {
         this.dx = dx;
         this.dy = dy;
