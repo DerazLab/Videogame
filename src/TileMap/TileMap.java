@@ -2,12 +2,10 @@ package TileMap;
 
 import java.awt.*;
 import java.awt.image.*;
+import Main.GamePanel;
 
 import java.io.*;
 import javax.imageio.ImageIO;
-
-import Main.GamePanel;
-
 
 public class TileMap
 {
@@ -51,6 +49,11 @@ public class TileMap
         numRowsToDraw = GamePanel.HEIGHT / tileSize + 2;
         numColsToDraw = GamePanel.WIDTH / tileSize + 2;
         tween = 0.07;
+		
+		xmin = 0;
+		ymin = 0;
+		xmax = 0;
+		ymax = 0;
 
         
     }
@@ -59,7 +62,7 @@ public class TileMap
     {
        try
        {
-            tileset = ImageIO.read(getClass().getResourceAsStream(s));
+            tileset = ImageIO.read(new File(s));
             numTilesAcross = tileset.getWidth() / tileSize;
             tiles = new Tile[2][numTilesAcross];
 
@@ -80,37 +83,47 @@ public class TileMap
        }
     }
 
-    public void loadMap(String s) 
+   public void loadMap(String s) 
+{
+    try
     {
-        try
-        {
-            InputStream in = getClass().getResourceAsStream(s);
-	        //InputStream in  = getClass().getClassLoader().getResourceAsStream(s);
-            BufferedReader br = new BufferedReader(new InputStreamReader(in));
-        
-            numCols = Integer.parseInt(br.readLine());
-            numRows = Integer.parseInt(br.readLine());
-            map = new int[numRows][numCols];
-            width = numCols * tileSize;
-            height = numRows * tileSize;
+        InputStream in = getClass().getClassLoader().getResourceAsStream(s);
+        if (in == null) {
+            throw new IOException("Resource not found: " + s);
+        }
+        BufferedReader br = new BufferedReader(new InputStreamReader(in));
+    
+        numCols = Integer.parseInt(br.readLine());
+        numRows = Integer.parseInt(br.readLine());
+        map = new int[numRows][numCols];
+        width = numCols * tileSize;
+        height = numRows * tileSize;
+        // Set bounds to allow full map visibility
+        xmin = 0;
+        ymin = 0;
+        xmax = width;
+        ymax = height;
 
-            String delims = "\\s+";
-            for (int row = 0; row < numRows; row++)
-            {
-                String line = br.readLine();
-                String[] tokens = line.split(delims);
-                for (int col = 0; col < numCols; col++)
-                {
-                    map[row][col] = Integer.parseInt(tokens[col]);
-                }
+        String delims = "\\s+";
+        for (int row = 0; row < numRows; row++)
+        {
+            String line = br.readLine();
+            if (line == null) {
+                throw new IOException("Unexpected end of file in " + s);
             }
-
+            String[] tokens = line.split(delims);
+            for (int col = 0; col < numCols; col++)
+            {
+                map[row][col] = Integer.parseInt(tokens[col]);
+            }
         }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
+        br.close();
     }
+    catch (Exception e)
+    {
+        e.printStackTrace();
+    }
+}
 
     public int getTileSize() 
     {
@@ -170,10 +183,8 @@ public class TileMap
             for (int col = colOffset; col < colOffset + numColsToDraw; col++)
             {
                 if (col >= numCols) break;
-                if (map[row][col] == 0) continue;
 
                 int rc = map[row][col];
-                if (rc == 0) continue;
 
                 int r = rc / numTilesAcross;
                 int c = rc % numTilesAcross;
