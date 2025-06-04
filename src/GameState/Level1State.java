@@ -9,8 +9,7 @@ import Entity.Enemies.*;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.*;
 
 public class Level1State extends GameState {
     private TileMap tileMap;
@@ -19,13 +18,14 @@ public class Level1State extends GameState {
     private ArrayList<Enemy> enemies;
     private GameServer server;
     private int localPlayerId;
+    private Map<Integer, NetworkData.PlayerInput> playerInputs; // Track input states
 
     public Level1State(GameStateManager gsm) {
         this.gsm = gsm;
         localPlayerId = gsm.isHost() ? 0 : (gsm.getClient() != null ? gsm.getClient().getPlayerId() : 1);
+        playerInputs = new HashMap<>(); // Initialize input map
         init();
     }
-
     public void init() {
         tileMap = new TileMap(16);
         tileMap.loadTiles("Resources/Tilesets/tileset1.png");
@@ -62,6 +62,7 @@ public class Level1State extends GameState {
         double xPos = 50 + (players.size() * 20);
         newPlayer.setPosition(xPos, 100);
         players.add(newPlayer);
+        playerInputs.put(players.size() - 1, new NetworkData.PlayerInput()); // Initialize input
     }
 
     public Player getPlayer(int index) {
@@ -179,7 +180,13 @@ public class Level1State extends GameState {
     }
 
     public void keyPressed(int k) {
-        NetworkData.PlayerInput input = new NetworkData.PlayerInput();
+        NetworkData.PlayerInput input = playerInputs.get(localPlayerId);
+        if (input == null) {
+            input = new NetworkData.PlayerInput();
+            playerInputs.put(localPlayerId, input);
+        }
+
+        // Update input state
         if (k == KeyEvent.VK_LEFT) input.left = true;
         if (k == KeyEvent.VK_RIGHT) input.right = true;
         if (k == KeyEvent.VK_UP) input.up = true;
@@ -187,14 +194,20 @@ public class Level1State extends GameState {
         if (k == KeyEvent.VK_W) input.jumping = true;
 
         if (gsm.isHost()) {
-            updatePlayerInput(0, input);
+            updatePlayerInput(localPlayerId, input);
         } else {
             gsm.sendInput(input);
         }
     }
 
     public void keyReleased(int k) {
-        NetworkData.PlayerInput input = new NetworkData.PlayerInput();
+        NetworkData.PlayerInput input = playerInputs.get(localPlayerId);
+        if (input == null) {
+            input = new NetworkData.PlayerInput();
+            playerInputs.put(localPlayerId, input);
+        }
+
+        // Update input state
         if (k == KeyEvent.VK_LEFT) input.left = false;
         if (k == KeyEvent.VK_RIGHT) input.right = false;
         if (k == KeyEvent.VK_UP) input.up = false;
@@ -202,7 +215,7 @@ public class Level1State extends GameState {
         if (k == KeyEvent.VK_W) input.jumping = false;
 
         if (gsm.isHost()) {
-            updatePlayerInput(0, input);
+            updatePlayerInput(localPlayerId, input);
         } else {
             gsm.sendInput(input);
         }

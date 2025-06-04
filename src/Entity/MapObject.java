@@ -115,21 +115,21 @@ public abstract class MapObject
     ytemp = y;
 
     calculateCorners(x, ydest);
-    // Si vamos hacia arriba
     if (dy < 0) {
         if (topLeft || topRight) {
             dy = 0;
             ytemp = currRow * tileSize + cheight / 2;
+            System.out.println("Collision: Top hit at y=" + ytemp);
         } else {
             ytemp += dy;
         }
     }
-    // Si vamos hacia abajo
     if (dy > 0) {
         if (bottomLeft || bottomRight) {
             dy = 0;
             falling = false;
             ytemp = (currRow + 1) * tileSize - cheight / 2;
+            System.out.println("Collision: Bottom hit at y=" + ytemp);
         } else {
             ytemp += dy;
         }
@@ -138,17 +138,18 @@ public abstract class MapObject
     calculateCorners(xdest, y);
     if (dx < 0) {
         if (topLeft || bottomLeft) {
-            xtemp = currCol * tileSize + cwidth / 2 + 0.1; // Margen pequeño
+            xtemp = currCol * tileSize + cwidth / 2 + 0.1;
             dx = 0;
+            System.out.println("Collision: Left hit at x=" + xtemp);
         } else {
             xtemp += dx;
         }
     }
-
     if (dx > 0) {
         if (topRight || bottomRight) {
-            xtemp = (currCol + 1) * tileSize - cwidth / 2 - 0.1; // Margen pequeño
+            xtemp = (currCol + 1) * tileSize - cwidth / 2 - 0.1;
             dx = 0;
+            System.out.println("Collision: Right hit at x=" + xtemp);
         } else {
             xtemp += dx;
         }
@@ -158,6 +159,7 @@ public abstract class MapObject
         calculateCorners(x, ydest + 1);
         if (!bottomLeft && !bottomRight) {
             falling = true;
+            System.out.println("Falling: No ground detected");
         }
     }
 }

@@ -111,44 +111,48 @@ public class Player extends MapObject {
     }
 
     private void getNextPosition() {
-        if (left) {
-            dx -= moveSpeed;
-            if (dx < -maxSpeed) {
-                dx = -maxSpeed;
+    // Handle horizontal movement
+    if (left && !right) {
+        dx -= moveSpeed;
+        if (dx < -maxSpeed) {
+            dx = -maxSpeed;
+        }
+    } else if (right && !left) {
+        dx += moveSpeed;
+        if (dx > maxSpeed) {
+            dx = maxSpeed;
+        }
+    } else if (left && right) {
+        dx = 0; // Cancel movement if both left and right are pressed
+    } else {
+        if (dx > 0) {
+            dx -= stopSpeed;
+            if (dx < 0) {
+                dx = 0;
             }
-        } else if (right) {
-            dx += moveSpeed;
-            if (dx > maxSpeed) {
-                dx = maxSpeed;
-            }
-        } else {
+        } else if (dx < 0) {
+            dx += stopSpeed;
             if (dx > 0) {
-                dx -= stopSpeed;
-                if (dx < 0) {
-                    dx = 0;
-                }
-            } else if (dx < 0) {
-                dx += stopSpeed;
-                if (dx > 0) {
-                    dx = 0;
-                }
+                dx = 0;
             }
-        }
-
-        if (jumping && !falling) {
-            dy = jumpStart;
-            falling = true;
-            System.out.println("falling True");
-        }
-
-        if (falling) {
-            dy += fallSpeed;
-            if (dy > 0) jumping = false;
-            System.out.println("falling false");
-            if (dy < 0 && !jumping) dy += stopJumpSpeed;
-            if (dy > maxFallSpeed) dy = maxFallSpeed;
         }
     }
+
+    // Handle vertical movement (jumping and falling)
+    if (jumping && !falling) {
+        dy = jumpStart;
+        falling = true;
+        System.out.println("falling True");
+    }
+
+    if (falling) {
+        dy += fallSpeed;
+        if (dy > 0) jumping = false;
+        System.out.println("falling false");
+        if (dy < 0 && !jumping) dy += stopJumpSpeed;
+        if (dy > maxFallSpeed) dy = maxFallSpeed;
+    }
+}
 
     public void update() {
         getNextPosition();

@@ -53,31 +53,36 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     }
 
     public void run() {
-        init();
+    init();
 
-        long startTime;
-        long passedTime;
-        long waitTime;
+    long targetTime = 1000000000 / FPS; // Target time per frame in nanoseconds
+    long lastTime = System.nanoTime();
 
-        while (running) {
-            startTime = System.nanoTime();
+    while (running) {
+        long currentTime = System.nanoTime();
+        long elapsed = currentTime - lastTime;
+
+        if (elapsed >= targetTime) {
             update();
             draw();
             drawToScreen();
-
-            passedTime = System.nanoTime() - startTime;
-            waitTime = milis - passedTime / 1000000;
-            if (waitTime < 0) {
-                waitTime = 5;
-            }
-
+            lastTime += targetTime;
+            // Sleep for a small amount to prevent busy-waiting
             try {
-                Thread.sleep(waitTime);
-            } catch (Exception e) {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        } else {
+            // Sleep to avoid consuming too much CPU
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
     }
+}
 
     private void update() {
         gsm.update();
