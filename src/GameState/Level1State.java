@@ -3,6 +3,7 @@ package GameState;
 import TileMap.*;
 import Main.GamePanel;
 import Entity.*;
+import Entity.Enemies.*;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
