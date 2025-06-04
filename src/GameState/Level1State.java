@@ -32,7 +32,7 @@ public class Level1State extends GameState {
         bg = new Background("Resources/Backgrounds/SkyBackground.png", 0.1);
 
         players = new ArrayList<>();
-        // Siempre agregar un jugador para el host
+        //Siempre agregar un jugador para el host
         addPlayer(); // Jugador inicial en posición (50, 100)
 
         enemies = new ArrayList<>();
