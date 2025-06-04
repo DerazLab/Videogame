@@ -91,7 +91,6 @@ public class Level1State extends GameState {
     }
 
     public void updateGameState(NetworkData.GameStateData state) {
-        // Update players
         // sincronizar todos los jugadores
         for (int i = 0; i < state.players.size() && i < players.size(); i++) {
             NetworkData.PlayerData data = state.players.get(i);
@@ -121,7 +120,6 @@ public class Level1State extends GameState {
         for (Player player : players) {
             player.update();
         }
-
         // Update enemies and check collisions (only on host)
         if (gsm.isHost()) {
             Iterator<Enemy> enemyIterator = enemies.iterator();
@@ -135,6 +133,7 @@ public class Level1State extends GameState {
                 for (Player player : players) {
                     if (player.intersects(enemy)) {
                         if (player.getDy() > 0) { // Player is falling (jumping on enemy)
+                            player.setDy(-player.getJumpStrength());
                             enemy.hit(1);
                             player.setScore(player.getScore() + 100);
                         } else {
