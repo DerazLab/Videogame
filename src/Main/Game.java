@@ -1,6 +1,6 @@
 package Main;
 import javax.swing.JFrame;
-//javac -d bin src/GameState/*.java src/Main/*.java src/TileMap/*.java src/Entity/*.java
+//javac -d bin src/GameState/*.java src/Main/*.java src/TileMap/*.java src/Entity/*.java src/Entity/Enemies/*.java
 //java -cp bin;Resources Main.Game
 
 public class Game{
