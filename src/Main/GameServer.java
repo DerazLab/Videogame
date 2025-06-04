@@ -106,9 +106,11 @@ public class GameServer {
 
                 while (true) {
                     Object obj = in.readObject();
-                    if (obj instanceof PlayerInput && gameState != null) {
-                        PlayerInput input = (PlayerInput) obj;
+                    if (obj instanceof NetworkData.PlayerInput && gameState != null) {
+                        NetworkData.PlayerInput input = (NetworkData.PlayerInput) obj;
                         gameState.updatePlayerInput(playerId, input);
+                        // Debug log to verify received input
+                        System.out.println("Received input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", jumping=" + input.jumping);
                     }
                 }
             } catch (IOException | ClassNotFoundException e) {
