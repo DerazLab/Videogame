@@ -85,7 +85,6 @@ private void getNextPosition() {
     }
 
     public void draw(java.awt.Graphics2D g) {
-        if(notOnScreen()) { return; }
 
         setMapPosition();
 

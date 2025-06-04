@@ -15,6 +15,7 @@ public class Level1State extends GameState
 
     private TileMap tileMap;
     private Background bg;
+    private HUD hud;
 
     private Player player;
 
@@ -43,6 +44,8 @@ public class Level1State extends GameState
         goomba = new Goomba(tileMap);
         goomba.setPosition(100, 100);
         enemies.add(goomba);
+
+        hud = new HUD(player);
 		
 		tileMap.setPosition(
         GamePanel.WIDTH / 2 - player.getx(), 
@@ -72,6 +75,8 @@ public class Level1State extends GameState
         for(int i = 0; i < enemies.size(); i++) {
             enemies.get(i).draw(g);
         }
+
+        hud.draw(g);
     }
     
     

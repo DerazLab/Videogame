@@ -11,6 +11,7 @@ public class Player extends MapObject
 {
     private int health;
     private int maxHealth;
+	private int score;
     //private int fire;
     //private int maxFire;
     private boolean dead;
@@ -70,6 +71,7 @@ public class Player extends MapObject
         facingRight = true;
 
         health = maxHealth = 5;
+		score = 0;
 
         //fire = maxFire = 2500;
 		
