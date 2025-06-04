@@ -59,27 +59,29 @@ public class GameServer {
     }
 
     public void broadcastGameState() {
-        if (gameState == null) return;
-        try {
-            GameStateData state = new GameStateData();
-            state.players = new ArrayList<>();
-            state.enemies = new ArrayList<>();
-            for (int i = 0; i < gameState.getPlayerCount(); i++) {
-                Player player = gameState.getPlayer(i);
-                if (player != null) {
-                    state.players.add(new PlayerData(player.getx(), player.gety(), player.getHealth(), player.getScore(), player.isFacingRight()));
-                }
+    if (gameState == null) return;
+    try {
+        GameStateData state = new GameStateData();
+        state.players = new ArrayList<>();
+        state.enemies = new ArrayList<>();
+        for (int i = 0; i < gameState.getPlayerCount(); i++) {
+            Player player = gameState.getPlayer(i);
+            if (player != null) {
+                state.players.add(new PlayerData(player.getx(), player.gety(), player.getHealth(), player.getScore(), player.isFacingRight()));
             }
-            for (Enemy enemy : gameState.getEnemies()) {
-                state.enemies.add(new EnemyData(enemy.getx(), enemy.gety(), enemy.getHealth(), enemy.isDead()));
-            }
-            for (ClientHandler client : clients) {
-                client.sendGameState(state);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
+        for (Enemy enemy : gameState.getEnemies()) {
+            state.enemies.add(new EnemyData(enemy.getx(), enemy.gety(), enemy.getHealth(), enemy.isDead()));
+        }
+        for (ClientHandler client : clients) {
+            client.sendGameState(state);
+        }
+        // Debug log to verify broadcast
+        System.out.println("Broadcasted game state: " + state.players.size() + " players, " + state.enemies.size() + " enemies");
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+}
 
     private class ClientHandler implements Runnable {
         private Socket socket;
@@ -99,30 +101,36 @@ public class GameServer {
         }
 
         @Override
-        public void run() {
-            try {
-                out.writeObject(playerId);
-                out.flush();
+public void run() {
+    try {
+        out.writeObject(playerId);
+        out.flush();
 
-                while (true) {
-                    Object obj = in.readObject();
-                    if (obj instanceof NetworkData.PlayerInput && gameState != null) {
-                        NetworkData.PlayerInput input = (NetworkData.PlayerInput) obj;
-                        gameState.updatePlayerInput(playerId, input);
-                        // Debug log to verify received input
-                        System.out.println("Received input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", jumping=" + input.jumping);
-                    }
-                }
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        while (true) {
+            Object obj = in.readObject();
+            if (obj instanceof NetworkData.PlayerInput && gameState != null) {
+                NetworkData.PlayerInput input = (NetworkData.PlayerInput) obj;
+                gameState.updatePlayerInput(playerId, input);
+                System.out.println("Received input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", jumping=" + input.jumping);
             }
         }
+    } catch (IOException | ClassNotFoundException e) {
+        System.out.println("Client " + playerId + " disconnected");
+        clients.remove(this);
+        if (gameState != null) {
+            Player player = gameState.getPlayer(playerId);
+            if (player != null) {
+                gameState.getPlayers().remove(player);
+            }
+        }
+    } finally {
+        try {
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
 
         public void sendGameState(GameStateData state) {
             try {

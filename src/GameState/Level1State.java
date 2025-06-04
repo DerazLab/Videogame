@@ -92,81 +92,87 @@ public class Level1State extends GameState {
     }
 
     public void updateGameState(NetworkData.GameStateData state) {
-        // sincronizar todos los jugadores
-        for (int i = 0; i < state.players.size() && i < players.size(); i++) {
-            NetworkData.PlayerData data = state.players.get(i);
-            Player player = players.get(i);
+    // Synchronize all players
+    for (int i = 0; i < state.players.size() && i < players.size(); i++) {
+        NetworkData.PlayerData data = state.players.get(i);
+        Player player = players.get(i);
+        // Preserve local player's position for smoother movement
+        if (i != localPlayerId) {
             player.setPosition(data.x, data.y);
-            player.setHealth(data.health);
-            player.setScore(data.score);
-            player.setFacingRight(data.facingRight);
         }
-        // Update enemies (only update positions and health, don't recreate)
-        if (state.enemies != null) {
-            for (int i = 0; i < state.enemies.size() && i < enemies.size(); i++) {
-                NetworkData.EnemyData enemyData = state.enemies.get(i);
-                Enemy enemy = enemies.get(i);
-                if (enemyData.dead) {
-                    enemies.remove(i);
-                } else {
-                    enemy.setPosition(enemyData.x, enemyData.y);
-                    enemy.setHealth(enemyData.health);
-                }
+        player.setHealth(data.health);
+        player.setScore(data.score);
+        player.setFacingRight(data.facingRight);
+    }
+    // Update enemies
+    if (state.enemies != null) {
+        Iterator<Enemy> enemyIterator = enemies.iterator();
+        int index = 0;
+        while (enemyIterator.hasNext() && index < state.enemies.size()) {
+            Enemy enemy = enemyIterator.next();
+            NetworkData.EnemyData enemyData = state.enemies.get(index);
+            if (enemyData.dead) {
+                enemyIterator.remove();
+            } else {
+                enemy.setPosition(enemyData.x, enemyData.y);
+                enemy.setHealth(enemyData.health);
             }
+            index++;
         }
     }
+}
 
     public void update() {
-        // Update players
-        for (Player player : players) {
-            player.update();
+    // Update players
+    for (Player player : players) {
+        player.update();
+    }
+
+    // Update enemies and check collisions (for both host and client)
+    Iterator<Enemy> enemyIterator = enemies.iterator();
+    while (enemyIterator.hasNext()) {
+        Enemy enemy = enemyIterator.next();
+        enemy.update();
+        if (gsm.isHost() && enemy.isDead()) {
+            enemyIterator.remove();
+            continue;
         }
-        // Update enemies and check collisions (only on host)
-        if (gsm.isHost()) {
-            Iterator<Enemy> enemyIterator = enemies.iterator();
-            while (enemyIterator.hasNext()) {
-                Enemy enemy = enemyIterator.next();
-                enemy.update();
-                if (enemy.isDead()) {
-                    enemyIterator.remove();
-                    continue;
-                }
-                for (Player player : players) {
-                    if (player.intersects(enemy)) {
-                        if (player.getDy() > 0) { // Player is falling (jumping on enemy)
-                            if(player.gety() < enemy.gety()) {
-                                player.setDy(-5);
-                                enemy.hit(1);
-                                player.setScore(player.getScore() + 100);
-                            } else {
-                            player.hit(enemy.getDamage());
-                            }
-                        } else {
-                            player.hit(enemy.getDamage());
-                        }
+        for (Player player : players) {
+            if (player.intersects(enemy)) {
+                if (player.getDy() > 0 && player.gety() < enemy.gety()) { // Player is falling (jumping on enemy)
+                    if (gsm.isHost()) {
+                        // Host applies damage and score
+                        player.setDy(-5);
+                        enemy.hit(1);
+                        player.setScore(player.getScore() + 100);
+                    } else {
+                        // Client predicts damage locally
+                        player.setDy(-5);
+                        player.setScore(player.getScore() + 100); // Local prediction
+                    }
+                } else {
+                    if (gsm.isHost()) {
+                        // Host applies player damage
+                        player.hit(enemy.getDamage());
                     }
                 }
             }
-        } else {
-            // Clients update enemies locally
-            for (Enemy enemy : enemies) {
-                enemy.update();
-            }
-        }
-
-        // Center camera on local player
-        Player localPlayer = getPlayer(localPlayerId);
-        if (localPlayer != null) {
-            tileMap.setPosition(
-                GamePanel.WIDTH / 2 - localPlayer.getx(),
-                GamePanel.HEIGHT / 2 - localPlayer.gety()
-            );
-        }
-
-        if (server != null) {
-            server.broadcastGameState();
         }
     }
+
+    // Center camera on local player
+    Player localPlayer = getPlayer(localPlayerId);
+    if (localPlayer != null) {
+        tileMap.setPosition(
+            GamePanel.WIDTH / 2 - localPlayer.getx(),
+            GamePanel.HEIGHT / 2 - localPlayer.gety()
+        );
+    }
+
+    if (server != null) {
+        server.broadcastGameState();
+    }
+}
 
     public void draw(Graphics2D g) {
         bg.draw(g);

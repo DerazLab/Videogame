@@ -123,7 +123,7 @@ public class Player extends MapObject {
             dx = maxSpeed;
         }
     } else if (left && right) {
-        dx = 0; // Cancel movement if both left and right are pressed
+        dx = 0; // Cancel movement if both are pressed
     } else {
         if (dx > 0) {
             dx -= stopSpeed;
@@ -142,13 +142,11 @@ public class Player extends MapObject {
     if (jumping && !falling) {
         dy = jumpStart;
         falling = true;
-        System.out.println("falling True");
     }
 
     if (falling) {
         dy += fallSpeed;
         if (dy > 0) jumping = false;
-        System.out.println("falling false");
         if (dy < 0 && !jumping) dy += stopJumpSpeed;
         if (dy > maxFallSpeed) dy = maxFallSpeed;
     }
