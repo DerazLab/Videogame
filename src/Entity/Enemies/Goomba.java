@@ -81,7 +81,6 @@ private void getNextPosition() {
             facingRight = true;
         }
         animation.update();
-        System.out.println("Goomba speed: " + dx);
     }
 
     public void draw(java.awt.Graphics2D g) {

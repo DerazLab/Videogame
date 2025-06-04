@@ -144,6 +144,7 @@ public class Player extends MapObject
 	// METODOS PARA USARLOS EN LA HUD --------
 	public int getHealth() { return health; }
 	public int getMaxHealth() { return maxHealth; }
+	public int getScore() { return score; }
 	//public int getFire() { return fire; }
 	//public int getMaxFire() { return maxFire; }
 
