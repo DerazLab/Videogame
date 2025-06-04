@@ -2,8 +2,7 @@ package Main;
 
 import javax.swing.*;
 import java.awt.*;
-//javac -d bin src/GameState/*.java src/Main/*.java src/TileMap/*.java src/Entity/*.java src/Entity/Enemies/*.java
-//java -cp bin;Resources Main.Game
+
 public class Game {
     public static void main(String[] args) {
         int port = 12345; // Puerto fijo para simplicidad

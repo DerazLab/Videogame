@@ -23,7 +23,7 @@ public class GameServer {
 
     public void setGameState(Level1State gameState) {
         this.gameState = gameState;
-        // Inicializar jugadores en Level1State para cada cliente
+        // Agregar jugadores solo para los clientes (el host ya tiene su jugador)
         for (int i = 0; i < clients.size(); i++) {
             gameState.addPlayer();
         }
@@ -38,9 +38,9 @@ public class GameServer {
             while (clients.size() < 2) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("New client connected: " + clientSocket.getInetAddress().getHostAddress());
-                ClientHandler client = new ClientHandler(clientSocket, clients.size());
+                ClientHandler client = new ClientHandler(clientSocket, clients.size() + 1); // IDs: 1 para el primer cliente
                 clients.add(client);
-                playerIds.add(clients.size() - 1);
+                playerIds.add(clients.size());
                 new Thread(client).start();
                 menuState.clientConnected();
             }
@@ -86,7 +86,7 @@ public class GameServer {
 
         public ClientHandler(Socket socket, int playerId) {
             this.socket = socket;
-            this.playerId = playerId;
+            this.playerId = playerId; // 1 para el primer cliente
             try {
                 out = new ObjectOutputStream(socket.getOutputStream());
                 in = new ObjectInputStream(socket.getInputStream());
@@ -136,5 +136,9 @@ public class GameServer {
                 e.printStackTrace();
             }
         }
+    }
+
+    public int getPlayerCount() {
+        return clients.size() + 1; // Incluye al host
     }
 }

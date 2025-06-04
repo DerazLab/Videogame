@@ -3,7 +3,7 @@ package GameState;
 import TileMap.Background;
 import Main.GameServer;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.KeyEvent;
 
 public class MenuState extends GameState {
     private Background bg;
@@ -12,19 +12,18 @@ public class MenuState extends GameState {
     private Color titleColor;
     private Font titleFont;
     private Font font;
-    private GameServer server; // Para el servidor del host
-    private int connectedPlayers = 1; // Incluye al host
+    private GameServer server;
+    private int connectedPlayers = 1;
 
     public MenuState(GameStateManager gsm) {
         this.gsm = gsm;
         try {
             bg = new Background("Resources/Backgrounds/background.png", 1);
             bg.setVector(-0.4, 0);
-            titleColor = new Color(128, 0 , 0);
+            titleColor = new Color(128, 0, 0);
             titleFont = new Font("Century Gothic", Font.PLAIN, 28);
             font = new Font("Arial", Font.PLAIN, 12);
 
-            // Iniciar servidor si es host
             if (gsm.isHost()) {
                 server = new GameServer(12345, this);
                 new Thread(server::start).start();
@@ -58,22 +57,16 @@ public class MenuState extends GameState {
             }
             g.drawString(options[i], 145, 140 + i * 15);
         }
-        // Mostrar número de jugadores conectados
         g.setColor(Color.WHITE);
         g.drawString("Players Connected: " + connectedPlayers, 20, 180);
     }
 
     private void select() {
         if (currentChoice == 0) {
-            // Notificar a todos los clientes que el juego comienza
             if (gsm.isHost() && server != null) {
                 server.notifyGameStart();
             }
             gsm.setState(GameStateManager.INLEVEL);
-            // Agregar segundo jugador si es cliente
-            if (!gsm.isHost() && gsm.getClient() != null && gsm.getClient().isConnected()) {
-                ((Level1State) gsm.getGameStates().get(GameStateManager.INLEVEL)).addPlayer();
-            }
         }
         if (currentChoice == 1) {
             System.exit(0);
@@ -100,7 +93,6 @@ public class MenuState extends GameState {
 
     public void keyReleased(int k) {}
 
-    // Añadir método getter para el servidor
     public GameServer getServer() {
         return server;
     }
