@@ -99,7 +99,7 @@ public class Level1State extends GameState {
         for (Enemy enemy : enemies) {
             enemy.update();
         }
-        // Solo actualizar la posición del mapa si hay al menos un jugador
+        //Solo actualizar la posición del mapa si hay al menos un jugador 
         if (!players.isEmpty()) {
             tileMap.setPosition(
                 GamePanel.WIDTH / 2 - players.get(0).getx(),
