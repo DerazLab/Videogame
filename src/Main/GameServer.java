@@ -1,6 +1,7 @@
 package Main;
 
 import Entity.Player;
+import Entity.Enemy;
 import GameState.Level1State;
 import GameState.MenuState;
 import Main.NetworkData.*;
@@ -23,7 +24,6 @@ public class GameServer {
 
     public void setGameState(Level1State gameState) {
         this.gameState = gameState;
-        // Agregar jugadores solo para los clientes (el host ya tiene su jugador)
         for (int i = 0; i < clients.size(); i++) {
             gameState.addPlayer();
         }
@@ -34,11 +34,10 @@ public class GameServer {
             serverSocket = new ServerSocket(port);
             System.out.println("Server started on port " + port);
 
-            // Aceptar conexiones de clientes
             while (clients.size() < 2) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("New client connected: " + clientSocket.getInetAddress().getHostAddress());
-                ClientHandler client = new ClientHandler(clientSocket, clients.size() + 1); // IDs: 1 para el primer cliente
+                ClientHandler client = new ClientHandler(clientSocket, clients.size() + 1);
                 clients.add(client);
                 playerIds.add(clients.size());
                 new Thread(client).start();
@@ -64,11 +63,15 @@ public class GameServer {
         try {
             GameStateData state = new GameStateData();
             state.players = new ArrayList<>();
+            state.enemies = new ArrayList<>();
             for (int i = 0; i < gameState.getPlayerCount(); i++) {
                 Player player = gameState.getPlayer(i);
                 if (player != null) {
                     state.players.add(new PlayerData(player.getx(), player.gety(), player.getHealth(), player.getScore(), player.isFacingRight()));
                 }
+            }
+            for (Enemy enemy : gameState.getEnemies()) {
+                state.enemies.add(new EnemyData(enemy.getx(), enemy.gety(), enemy.getHealth(), enemy.isDead()));
             }
             for (ClientHandler client : clients) {
                 client.sendGameState(state);
@@ -86,7 +89,7 @@ public class GameServer {
 
         public ClientHandler(Socket socket, int playerId) {
             this.socket = socket;
-            this.playerId = playerId; // 1 para el primer cliente
+            this.playerId = playerId;
             try {
                 out = new ObjectOutputStream(socket.getOutputStream());
                 in = new ObjectInputStream(socket.getInputStream());
@@ -139,6 +142,6 @@ public class GameServer {
     }
 
     public int getPlayerCount() {
-        return clients.size() + 1; // Incluye al host
+        return clients.size() + 1;
     }
 }

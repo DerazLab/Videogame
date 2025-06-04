@@ -78,9 +78,31 @@ public class Player extends MapObject {
     public int getScore() { return score; }
     public boolean isFacingRight() { return facingRight; }
 
-    public void setHealth(int health) { this.health = health; }
+    public void setHealth(int health) { 
+        this.health = health;
+        if (health <= 0) dead = true;
+    }
     public void setScore(int score) { this.score = score; }
     public void setFacingRight(boolean facingRight) { this.facingRight = facingRight; }
+
+    public void hit(int damage) {
+        if (dead || flinching) return;
+        health -= damage;
+        if (health < 0) health = 0;
+        if (health == 0) {
+            dead = true;
+            currentAction = DEAD;
+            animation.setFrames(sprites.get(DEAD));
+            animation.setDelay(-1);
+        } else {
+            flinching = true;
+            flinchTimer = System.nanoTime();
+        }
+    }
+
+    public boolean isDead() { return dead; }
+
+    public double getDy() { return dy; }
 
     private void getNextPosition() {
         if (left) {
@@ -126,6 +148,13 @@ public class Player extends MapObject {
         getNextPosition();
         checkTileMapCollision();
         setPosition(xtemp, ytemp);
+
+        if (flinching) {
+            long elapsed = (System.nanoTime() - flinchTimer) / 1000000;
+            if (elapsed > 1000) {
+                flinching = false;
+            }
+        }
 
         if (dy > 0) {
             if (currentAction != FALLING) {
