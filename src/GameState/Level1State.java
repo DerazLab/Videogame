@@ -15,7 +15,6 @@ public class Level1State extends GameState
 
     private TileMap tileMap;
     private Background bg;
-    private HUD hud;
 
     private Player player;
 
@@ -75,8 +74,6 @@ public class Level1State extends GameState
         for(int i = 0; i < enemies.size(); i++) {
             enemies.get(i).draw(g);
         }
-
-        hud.draw(g);
     }
     
     
