@@ -14,9 +14,11 @@ public class GameClient {
     private int playerId;
     private GamePanel gamePanel;
     private boolean connected;
+    private NetworkData.PlayerInput lastInput; // Track last sent input
 
     public GameClient(String host, int port, GamePanel gamePanel) {
         this.gamePanel = gamePanel;
+        lastInput = new NetworkData.PlayerInput(); // Initialize default input
         try {
             socket = new Socket(host, port);
             out = new ObjectOutputStream(socket.getOutputStream());
@@ -43,7 +45,7 @@ public class GameClient {
         return playerId;
     }
 
-    public void sendInput(PlayerInput input) {
+    public void sendInput(NetworkData.PlayerInput input) {
         try {
             // Apply input locally for immediate response
             GameStateManager gsm = gamePanel.getGameStateManager();
@@ -51,9 +53,18 @@ public class GameClient {
                 Level1State level = (Level1State) gsm.getGameStates().get(GameStateManager.INLEVEL);
                 level.updatePlayerInput(playerId, input);
             }
-            // Send input to server
-            out.writeObject(input);
-            out.flush();
+            // Only send if input has changed to reduce network load
+            if (!input.equals(lastInput)) {
+                out.writeObject(input);
+                out.flush();
+                lastInput = new NetworkData.PlayerInput();
+                lastInput.left = input.left;
+                lastInput.right = input.right;
+                lastInput.up = input.up;
+                lastInput.down = input.down;
+                lastInput.jumping = input.jumping;
+                System.out.println("Sent input: left=" + input.left + ", right=" + input.right + ", jumping=" + input.jumping);
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
