@@ -133,9 +133,10 @@ public class Level1State extends GameState {
                 for (Player player : players) {
                     if (player.intersects(enemy)) {
                         if (player.getDy() > 0) { // Player is falling (jumping on enemy)
-                            player.setDy(-5);
-                            enemy.hit(1);
-                            player.setScore(player.getScore() + 100);
+                            if(player.gety() < enemy.gety()) {
+                                player.setDy(-5);
+                                enemy.hit(1);
+                                player.setScore(player.getScore() + 100);
                         } else {
                             player.hit(enemy.getDamage());
                         }
