@@ -37,6 +37,7 @@ public class Goomba extends Enemy {
         animation.setDelay(300);
 
         right = true;
+        facingRight = true;
 
 }
 
@@ -73,11 +74,14 @@ private void getNextPosition() {
         if(right && dx == 0) {
             right = false;
             left = true;
+            facingRight = false;
         } else if(left && dx == 0) {
             right = true;
             left = false;
+            facingRight = true;
         }
         animation.update();
+        System.out.println("Goomba speed: " + dx);
     }
 
     public void draw(java.awt.Graphics2D g) {

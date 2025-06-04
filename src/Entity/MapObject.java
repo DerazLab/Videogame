@@ -139,6 +139,7 @@ public abstract class MapObject
     if (dx < 0) {
         if (topLeft || bottomLeft) {
             xtemp = currCol * tileSize + cwidth / 2 + 0.1; // Margen pequeño
+            dx = 0;
         } else {
             xtemp += dx;
         }
@@ -147,6 +148,7 @@ public abstract class MapObject
     if (dx > 0) {
         if (topRight || bottomRight) {
             xtemp = (currCol + 1) * tileSize - cwidth / 2 - 0.1; // Margen pequeño
+            dx = 0;
         } else {
             xtemp += dx;
         }
