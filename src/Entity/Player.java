@@ -104,6 +104,12 @@ public class Player extends MapObject {
 
     public double getDy() { return dy; }
 
+    public void setDy(double dy) {
+        this.dy = dy;
+        if (dy < 0) jumping = true;
+        else if (dy > 0) falling = true;
+    }
+
     private void getNextPosition() {
         if (left) {
             dx -= moveSpeed;
