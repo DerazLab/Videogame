@@ -1,80 +1,65 @@
 package Main;
 
 import GameState.GameStateManager;
+import Main.NetworkData;
 import javax.swing.JPanel;
 import java.awt.image.BufferedImage;
-import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.event.*;
 
-//javac -d bin -sourcepath src src/Main/*.java
-//java -cp bin Main.Game
-
-public class GamePanel extends JPanel implements Runnable, KeyListener
-{
-
-    //dimensiones
-
+public class GamePanel extends JPanel implements Runnable, KeyListener {
     public static final int WIDTH = 320;
     public static final int HEIGHT = 240;
     public static final int SCALE = 2;
 
-    // thread
-
     private Thread thread;
     private boolean running;
     private int FPS = 60;
-    private long milis = 1000/FPS;
-
-    // imagen
+    private long milis = 1000 / FPS;
 
     private BufferedImage image;
     private Graphics2D g;
-
-    //  estado del juego
-
     private GameStateManager gsm;
+    private GameClient client;
 
-    public GamePanel()
-    {
+    public GamePanel(boolean isHost, String hostAddress, int port) {
         super();
-        setPreferredSize(new Dimension(WIDTH * SCALE, HEIGHT * SCALE));        
+        setPreferredSize(new Dimension(WIDTH * SCALE, HEIGHT * SCALE));
         setFocusable(true);
         requestFocus();
+
+        if (isHost) {
+            gsm = new GameStateManager(true, port);
+        } else {
+            client = new GameClient(hostAddress, port, this);
+            gsm = new GameStateManager(false, port);
+            gsm.setClient(client);
+        }
     }
 
-    public void addNotify() // inicia el thread cuando carga.
-    {
+    public void addNotify() {
         super.addNotify();
-        if(thread == null)
-        {
+        if (thread == null) {
             thread = new Thread(this);
             addKeyListener(this);
             thread.start();
         }
     }
 
-    private void init()     // inicializacion 
-    {
+    private void init() {
         image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
         g = (Graphics2D) image.getGraphics();
-
         running = true;
-
-        gsm = new GameStateManager();
     }
 
-    public void run()
-    {
+    public void run() {
         init();
 
         long startTime;
         long passedTime;
         long waitTime;
 
-        while(running)
-        {
+        while (running) {
             startTime = System.nanoTime();
             update();
             draw();
@@ -82,50 +67,51 @@ public class GamePanel extends JPanel implements Runnable, KeyListener
 
             passedTime = System.nanoTime() - startTime;
             waitTime = milis - passedTime / 1000000;
-            if(waitTime < 0)
-            {
-                waitTime = 5; // si el tiempo de espera es negativo, espera un poco para no saturar la CPU
+            if (waitTime < 0) {
+                waitTime = 5;
             }
 
-            try
-            {
+            try {
                 Thread.sleep(waitTime);
-            }
-            catch(Exception e) 
-            {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-
         }
     }
 
-    private void update()
-    {
+    private void update() {
         gsm.update();
     }
 
-    private void draw()
-    {
+    private void draw() {
         gsm.draw(g);
     }
 
-    private void drawToScreen()
-    {
+    private void drawToScreen() {
         Graphics g2 = getGraphics();
-        g2.drawImage(image, 0, 0, getWidth(), getHeight(), null); // <- Escala al tamaño actual del panel
+        g2.drawImage(image, 0, 0, getWidth(), getHeight(), null);
         g2.dispose();
     }
 
-    public void keyTyped(KeyEvent key)
-    {
-
+    public void updateGameState(NetworkData.GameStateData state) {
+        gsm.updateGameState(state);
     }
-    public void keyPressed(KeyEvent key)
-    {
+
+    public void keyTyped(KeyEvent key) {}
+
+    public void keyPressed(KeyEvent key) {
         gsm.keyPressed(key.getKeyCode());
     }
-    public void keyReleased(KeyEvent key)
-    {
+
+    public void keyReleased(KeyEvent key) {
         gsm.keyReleased(key.getKeyCode());
+    }
+
+    public GameClient getClient() {
+        return client;
+    }
+
+    public GameStateManager getGameStateManager() {
+        return gsm;
     }
 }

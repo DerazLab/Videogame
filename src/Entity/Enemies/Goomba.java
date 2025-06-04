@@ -23,8 +23,8 @@ public class Goomba extends Enemy {
         health = maxHealth = 1;
         damage = 1;
         try {
-            BufferedImage spritesheet = ImageIO.read(getClass().getResourceAsStream("/Resources/Sprites/Player/MarioSprites.png"));
-            sprites = new BufferedImage[3];
+            BufferedImage spritesheet = ImageIO.read(getClass().getResourceAsStream("/Resources/Sprites/Enemies/Goomba.png"));
+            sprites = new BufferedImage[2];
             for(int i = 0; i < sprites.length; i++) {
                 sprites[i] = spritesheet.getSubimage(i * width, 0, width, height);
             }
@@ -37,7 +37,6 @@ public class Goomba extends Enemy {
         animation.setDelay(300);
 
         right = true;
-        facingRight = true;
 
 }
 
@@ -74,16 +73,17 @@ private void getNextPosition() {
         if(right && dx == 0) {
             right = false;
             left = true;
-            facingRight = false;
+			facingRight = false;
         } else if(left && dx == 0) {
             right = true;
             left = false;
-            facingRight = true;
+			facingRight =  true;
         }
         animation.update();
     }
 
     public void draw(java.awt.Graphics2D g) {
+        if(notOnScreen()) { return; }
 
         setMapPosition();
 
