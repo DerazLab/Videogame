@@ -6,6 +6,7 @@ import Entity.*;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 
 
 public class Level1State extends GameState
@@ -15,6 +16,8 @@ public class Level1State extends GameState
     private Background bg;
 
     private Player player;
+
+    private ArrayList<Enemy> enemies;
     
     public Level1State(GameStateManager gsm)
     {
@@ -33,6 +36,12 @@ public class Level1State extends GameState
 
         player = new Player(tileMap);
         player.setPosition(50, 100);
+
+        enemies = new ArrayList<Enemy>();
+        Goomba goomba;
+        goomba = new Goomba(tileMap);
+        goomba.setPosition(100, 100);
+        enemies.add(goomba);
 		
 		tileMap.setPosition(
         GamePanel.WIDTH / 2 - player.getx(), 
@@ -43,9 +52,10 @@ public class Level1State extends GameState
     public void update() 
     {
         player.update();
-        tileMap.setPosition(
-            GamePanel.WIDTH / 2 - player.getx(), 
-            GamePanel.HEIGHT / 2 - player.gety());
+        tileMap.setPosition(GamePanel.WIDTH / 2 - player.getx(), GamePanel.HEIGHT / 2 - player.gety());
+        for(int i = 0; i < enemies.size(); i++) {
+            enemies.get(i).update();
+        }
     }
 
     public void draw(Graphics2D g) 
@@ -58,6 +68,9 @@ public class Level1State extends GameState
         tileMap.draw(g);
 
         player.draw(g);
+        for(int i = 0; i < enemies.size(); i++) {
+            enemies.get(i).draw(g);
+        }
     }
     
     

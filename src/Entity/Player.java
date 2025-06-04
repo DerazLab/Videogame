@@ -55,8 +55,8 @@ public class Player extends MapObject
 		
         width = 16;
 		height = 16;
-		cwidth = 20;
-		cheight = 20;
+		cwidth = 16;
+		cheight = 16;
 
 
         moveSpeed = 0.3;
@@ -340,27 +340,7 @@ public class Player extends MapObject
 			}
 		}
 		
-		if(facingRight) 
-		{
-			g.drawImage(
-				animation.getImage(),
-				(int)(x + xmap - width / 2),
-				(int)(y + ymap - height / 2),
-				null
-			);
-		}
-		else 
-		{
-			g.drawImage(
-				animation.getImage(),
-				(int)(x + xmap - width / 2 + width),
-				(int)(y + ymap - height / 2),
-				-width,
-				height,
-				null
-			);
-			
-		}
+		super.draw(g);
 		
 	}
 
