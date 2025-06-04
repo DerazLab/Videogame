@@ -36,10 +36,10 @@ public class Level1State extends GameState {
 
         players = new ArrayList<>();
         if (gsm.isHost()) {
-            addPlayer();
+            addPlayer(0); // Host player (Mario)
         } else {
-            addPlayer();
-            addPlayer();
+            addPlayer(0); // Host player (Mario)
+            addPlayer(1); // Client player (Luigi)
         }
 
         enemies = new ArrayList<>();
@@ -57,8 +57,8 @@ public class Level1State extends GameState {
         return server;
     }
 
-    public void addPlayer() {
-        Player newPlayer = new Player(tileMap);
+    public void addPlayer(int playerId) {
+        Player newPlayer = new Player(tileMap, playerId);
         double xPos = 50 + (players.size() * 20);
         newPlayer.setPosition(xPos, 100);
         players.add(newPlayer);

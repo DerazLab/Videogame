@@ -21,6 +21,8 @@ public class Player extends MapObject {
     private ArrayList<BufferedImage[]> sprites;
     private final int[] numFrames = {1, 3, 1, 1, 1};
 
+    private int playerId;
+
     private static final int IDLE = 0;
     private static final int WALKING = 1;
     private static final int JUMPING = 2;
@@ -29,6 +31,9 @@ public class Player extends MapObject {
 
     public Player(TileMap tm) {
         super(tm);
+
+        this.playerId = playerId; //SKINS ----
+
         width = 16;
         height = 16;
         cwidth = 16;
@@ -47,9 +52,13 @@ public class Player extends MapObject {
         health = maxHealth = 5;
         score = 0;
 
+        //CHANGED ------------------------------------------------->
         try {
+            String spritePath = playerId == 0 ? 
+                "/Resources/Sprites/Player/MarioSprites.png" : 
+                "/Resources/Sprites/Player/LuigiSprites.png";
             BufferedImage spritesheet = ImageIO.read(
-                getClass().getResourceAsStream("/Resources/Sprites/Player/MarioSprites.png")
+                getClass().getResourceAsStream(spritePath)
             );
             sprites = new ArrayList<>();
             for (int i = 0; i < numFrames.length; i++) {
@@ -60,9 +69,10 @@ public class Player extends MapObject {
                 sprites.add(bi);
             }
         } catch (Exception e) {
-            System.err.println("Error al cargar sprites: " + e.getMessage());
+            System.err.println("Error al cargar sprites para player " + playerId + ": " + e.getMessage());
             e.printStackTrace();
         }
+        // <------------------------------------------------- CHANGED 
 
         animation = new Animation();
         currentAction = IDLE;

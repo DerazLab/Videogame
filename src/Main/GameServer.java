@@ -25,7 +25,7 @@ public class GameServer {
     public void setGameState(Level1State gameState) {
         this.gameState = gameState;
         for (int i = 0; i < clients.size(); i++) {
-            gameState.addPlayer();
+            gameState.addPlayer(i + 1);
         }
     }
 
