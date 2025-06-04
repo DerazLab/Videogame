@@ -17,9 +17,11 @@ public class Level1State extends GameState {
     private ArrayList<Player> players;
     private ArrayList<Enemy> enemies;
     private GameServer server;
+    private int localPlayerId;
 
     public Level1State(GameStateManager gsm) {
         this.gsm = gsm;
+        localPlayerId = gsm.isHost() ? 0 : (gsm.getClient() != null ? gsm.getClient().getPlayerId() : 1);
         init();
     }
 
@@ -32,8 +34,14 @@ public class Level1State extends GameState {
         bg = new Background("Resources/Backgrounds/SkyBackground.png", 0.1);
 
         players = new ArrayList<>();
-        //Siempre agregar un jugador para el host
-        addPlayer(); // Jugador inicial en posición (50, 100)
+        // Inicializar jugadores
+        if (gsm.isHost()) {
+            addPlayer(); // Solo el jugador del host
+        } else {
+            // El cliente inicializa dos jugadores: uno para el host y otro para sí mismo
+            addPlayer(); // Jugador del host
+            addPlayer(); // Jugador del cliente
+        }
 
         enemies = new ArrayList<>();
         Goomba goomba = new Goomba(tileMap);
@@ -53,8 +61,7 @@ public class Level1State extends GameState {
 
     public void addPlayer() {
         Player newPlayer = new Player(tileMap);
-        // Establecer posición inicial diferente para cada jugador
-        double xPos = 50 + (players.size() * 20); // 50, 70, 90, etc.
+        double xPos = 50 + (players.size() * 20); // 50, 70, etc.
         newPlayer.setPosition(xPos, 100);
         players.add(newPlayer);
     }
@@ -82,6 +89,7 @@ public class Level1State extends GameState {
     }
 
     public void updateGameState(NetworkData.GameStateData state) {
+        // Sincronizar todos los jugadores
         for (int i = 0; i < state.players.size() && i < players.size(); i++) {
             NetworkData.PlayerData data = state.players.get(i);
             Player player = players.get(i);
@@ -99,11 +107,12 @@ public class Level1State extends GameState {
         for (Enemy enemy : enemies) {
             enemy.update();
         }
-        //Solo actualizar la posición del mapa si hay al menos un jugador 
-        if (!players.isEmpty()) {
+        // Centrar la cámara en el jugador local
+        Player localPlayer = getPlayer(localPlayerId);
+        if (localPlayer != null) {
             tileMap.setPosition(
-                GamePanel.WIDTH / 2 - players.get(0).getx(),
-                GamePanel.HEIGHT / 2 - players.get(0).gety()
+                GamePanel.WIDTH / 2 - localPlayer.getx(),
+                GamePanel.HEIGHT / 2 - localPlayer.gety()
             );
         }
 
@@ -130,7 +139,12 @@ public class Level1State extends GameState {
         if (k == KeyEvent.VK_UP) input.up = true;
         if (k == KeyEvent.VK_DOWN) input.down = true;
         if (k == KeyEvent.VK_W) input.jumping = true;
-        gsm.sendInput(input);
+
+        if (gsm.isHost()) {
+            updatePlayerInput(0, input);
+        } else {
+            gsm.sendInput(input);
+        }
     }
 
     public void keyReleased(int k) {
@@ -140,6 +154,11 @@ public class Level1State extends GameState {
         if (k == KeyEvent.VK_UP) input.up = false;
         if (k == KeyEvent.VK_DOWN) input.down = false;
         if (k == KeyEvent.VK_W) input.jumping = false;
-        gsm.sendInput(input);
+
+        if (gsm.isHost()) {
+            updatePlayerInput(0, input);
+        } else {
+            gsm.sendInput(input);
+        }
     }
 }
