@@ -91,11 +91,8 @@ public class Level1State extends GameState {
     }
 
     public void updateGameState(NetworkData.GameStateData state) {
-<<<<<<< HEAD
         // Update players
-=======
         // sincronizar todos los jugadores
->>>>>>> db9b5e968d4e9967e96f08e3f58404a553ae40bc
         for (int i = 0; i < state.players.size() && i < players.size(); i++) {
             NetworkData.PlayerData data = state.players.get(i);
             Player player = players.get(i);
