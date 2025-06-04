@@ -137,6 +137,9 @@ public class Level1State extends GameState {
                                 player.setDy(-5);
                                 enemy.hit(1);
                                 player.setScore(player.getScore() + 100);
+                            } else {
+                            player.hit(enemy.getDamage());
+                            }
                         } else {
                             player.hit(enemy.getDamage());
                         }
