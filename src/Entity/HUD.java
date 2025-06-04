@@ -34,7 +34,7 @@ public class HUD
         g.drawImage(world, 0, 0, null);
         
         // Draw the timer image
-        g.drawImage(timer, 10, 10, null);
+        g.drawImage(timer, 100, 100, null);
         
         // Draw the player's score
         g.setFont(font);
