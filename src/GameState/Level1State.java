@@ -10,6 +10,7 @@ import Entity.Enemies.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class Level1State extends GameState {
     private TileMap tileMap;
@@ -34,13 +35,11 @@ public class Level1State extends GameState {
         bg = new Background("Resources/Backgrounds/SkyBackground.png", 0.1);
 
         players = new ArrayList<>();
-        // Inicializar jugadores
         if (gsm.isHost()) {
-            addPlayer(); // Solo el jugador del host
+            addPlayer();
         } else {
-            // El cliente inicializa dos jugadores: uno para el host y otro para sí mismo
-            addPlayer(); // Jugador del host
-            addPlayer(); // Jugador del cliente
+            addPlayer();
+            addPlayer();
         }
 
         enemies = new ArrayList<>();
@@ -48,7 +47,6 @@ public class Level1State extends GameState {
         goomba.setPosition(100, 100);
         enemies.add(goomba);
 
-        // Vincular el servidor si es host
         if (gsm.isHost()) {
             server = ((MenuState) gsm.getGameStates().get(GameStateManager.INMENU)).getServer();
             server.setGameState(this);
@@ -61,7 +59,7 @@ public class Level1State extends GameState {
 
     public void addPlayer() {
         Player newPlayer = new Player(tileMap);
-        double xPos = 50 + (players.size() * 20); // 50, 70, etc.
+        double xPos = 50 + (players.size() * 20);
         newPlayer.setPosition(xPos, 100);
         players.add(newPlayer);
     }
@@ -77,6 +75,10 @@ public class Level1State extends GameState {
         return players.size();
     }
 
+    public ArrayList<Enemy> getEnemies() {
+        return enemies;
+    }
+
     public void updatePlayerInput(int playerId, NetworkData.PlayerInput input) {
         Player player = getPlayer(playerId);
         if (player != null) {
@@ -89,7 +91,11 @@ public class Level1State extends GameState {
     }
 
     public void updateGameState(NetworkData.GameStateData state) {
+<<<<<<< HEAD
+        // Update players
+=======
         // sincronizar todos los jugadores
+>>>>>>> db9b5e968d4e9967e96f08e3f58404a553ae40bc
         for (int i = 0; i < state.players.size() && i < players.size(); i++) {
             NetworkData.PlayerData data = state.players.get(i);
             Player player = players.get(i);
@@ -98,16 +104,56 @@ public class Level1State extends GameState {
             player.setScore(data.score);
             player.setFacingRight(data.facingRight);
         }
+        // Update enemies (only update positions and health, don't recreate)
+        if (state.enemies != null) {
+            for (int i = 0; i < state.enemies.size() && i < enemies.size(); i++) {
+                NetworkData.EnemyData enemyData = state.enemies.get(i);
+                Enemy enemy = enemies.get(i);
+                if (enemyData.dead) {
+                    enemies.remove(i);
+                } else {
+                    enemy.setPosition(enemyData.x, enemyData.y);
+                    enemy.setHealth(enemyData.health);
+                }
+            }
+        }
     }
 
     public void update() {
+        // Update players
         for (Player player : players) {
             player.update();
         }
-        for (Enemy enemy : enemies) {
-            enemy.update();
+
+        // Update enemies and check collisions (only on host)
+        if (gsm.isHost()) {
+            Iterator<Enemy> enemyIterator = enemies.iterator();
+            while (enemyIterator.hasNext()) {
+                Enemy enemy = enemyIterator.next();
+                enemy.update();
+                if (enemy.isDead()) {
+                    enemyIterator.remove();
+                    continue;
+                }
+                for (Player player : players) {
+                    if (player.intersects(enemy)) {
+                        if (player.getDy() > 0) { // Player is falling (jumping on enemy)
+                            enemy.hit(1);
+                            player.setScore(player.getScore() + 100);
+                        } else {
+                            player.hit(enemy.getDamage());
+                        }
+                    }
+                }
+            }
+        } else {
+            // Clients update enemies locally
+            for (Enemy enemy : enemies) {
+                enemy.update();
+            }
         }
-        // Centrar la cámara en el jugador local
+
+        // Center camera on local player
         Player localPlayer = getPlayer(localPlayerId);
         if (localPlayer != null) {
             tileMap.setPosition(
