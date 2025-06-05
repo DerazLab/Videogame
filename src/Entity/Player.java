@@ -29,7 +29,7 @@ public class Player extends MapObject {
     private static final int FALLING = 2;
     private static final int DEAD = 3;
 
-    public Player(TileMap tm) {
+    public Player(TileMap tm, int playerId) {
         super(tm);
 
         this.playerId = playerId; //SKINS ----
