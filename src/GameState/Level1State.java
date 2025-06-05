@@ -18,14 +18,17 @@ public class Level1State extends GameState {
     private ArrayList<Enemy> enemies;
     private GameServer server;
     private int localPlayerId;
-    private Map<Integer, NetworkData.PlayerInput> playerInputs; // Track input states
+    private Map<Integer, NetworkData.PlayerInput> playerInputs;
+    private Map<Integer, Long> lastInputTimes;
 
     public Level1State(GameStateManager gsm) {
         this.gsm = gsm;
         localPlayerId = gsm.isHost() ? 0 : (gsm.getClient() != null ? gsm.getClient().getPlayerId() : 1);
-        playerInputs = new HashMap<>(); // Initialize input map
+        playerInputs = new HashMap<>();
+        lastInputTimes = new HashMap<>();
         init();
     }
+	
     public void init() {
         tileMap = new TileMap(16);
         tileMap.loadTiles("Resources/Tilesets/tileset1.png");
@@ -85,15 +88,25 @@ public class Level1State extends GameState {
     }
 
     public void updatePlayerInput(int playerId, NetworkData.PlayerInput input) {
-        Player player = getPlayer(playerId);
-        if (player != null) {
-            player.setLeft(input.left);
-            player.setRight(input.right);
-            player.setUp(input.up);
-            player.setDown(input.down);
-            player.setJumping(input.jumping);
-        }
+    Player player = getPlayer(playerId);
+    if (player != null) {
+        // Create a new PlayerInput to avoid modifying the original
+        NetworkData.PlayerInput newInput = new NetworkData.PlayerInput();
+        newInput.left = input.left;
+        newInput.right = input.right;
+        newInput.up = input.up;
+        newInput.down = input.down;
+        newInput.jumping = input.jumping;
+        playerInputs.put(playerId, newInput);
+        System.out.println("Applying input for player " + playerId + ": left=" + newInput.left + ", right=" + newInput.right + ", up=" + newInput.up + ", down=" + newInput.down + ", jumping=" + newInput.jumping);
+        player.setLeft(newInput.left);
+        player.setRight(newInput.right);
+        player.setUp(newInput.up);
+        player.setDown(newInput.down);
+        player.setJumping(newInput.jumping);
+        lastInputTimes.put(playerId, System.nanoTime());
     }
+}
 
     public void updateGameState(NetworkData.GameStateData state) {
     // Synchronize all players
@@ -126,13 +139,26 @@ public class Level1State extends GameState {
     }
 }
 
+	// In Level1State.java
+	public void updateClientInput() {
+		if (!gsm.isHost()) {
+			NetworkData.PlayerInput input = playerInputs.get(localPlayerId);
+			if (input != null) {
+				gsm.sendInput(input);
+			}
+		}
+	}
+
     public void update() {
+    // Reset inputs for non-local players if no recent update
+    
+
     // Update players
     for (Player player : players) {
         player.update();
     }
 
-    // Update enemies and check collisions (for both host and client)
+    // Update enemies and check collisions
     Iterator<Enemy> enemyIterator = enemies.iterator();
     while (enemyIterator.hasNext()) {
         Enemy enemy = enemyIterator.next();
@@ -143,20 +169,17 @@ public class Level1State extends GameState {
         }
         for (Player player : players) {
             if (player.intersects(enemy)) {
-                if (player.getDy() > 0 && player.gety() < enemy.gety()) { // Player is falling (jumping on enemy)
+                if (player.getDy() > 0 && player.gety() < enemy.gety()) {
                     if (gsm.isHost()) {
-                        // Host applies damage and score
                         player.setDy(-5);
                         enemy.hit(1);
                         player.setScore(player.getScore() + 100);
                     } else {
-                        // Client predicts damage locally
                         player.setDy(-5);
-                        player.setScore(player.getScore() + 100); // Local prediction
+                        player.setScore(player.getScore() + 100);
                     }
                 } else {
                     if (gsm.isHost()) {
-                        // Host applies player damage
                         player.hit(enemy.getDamage());
                     }
                 }
@@ -196,12 +219,26 @@ public class Level1State extends GameState {
             playerInputs.put(localPlayerId, input);
         }
 
-        // Update input state
-        if (k == KeyEvent.VK_LEFT) input.left = true;
-        if (k == KeyEvent.VK_RIGHT) input.right = true;
-        if (k == KeyEvent.VK_UP) input.up = true;
-        if (k == KeyEvent.VK_DOWN) input.down = true;
-        if (k == KeyEvent.VK_W) input.jumping = true;
+        if (k == KeyEvent.VK_LEFT) {
+            input.left = true;
+            System.out.println("Key pressed: LEFT for player " + localPlayerId);
+        }
+        if (k == KeyEvent.VK_RIGHT) {
+            input.right = true;
+            System.out.println("Key pressed: RIGHT for player " + localPlayerId);
+        }
+        if (k == KeyEvent.VK_UP) {
+            input.up = true;
+            System.out.println("Key pressed: UP for player " + localPlayerId);
+        }
+        if (k == KeyEvent.VK_DOWN) {
+            input.down = true;
+            System.out.println("Key pressed: DOWN for player " + localPlayerId);
+        }
+        if (k == KeyEvent.VK_W) {
+            input.jumping = true;
+            System.out.println("Key pressed: W (JUMP) for player " + localPlayerId);
+        }
 
         if (gsm.isHost()) {
             updatePlayerInput(localPlayerId, input);
@@ -210,19 +247,33 @@ public class Level1State extends GameState {
         }
     }
 
-    public void keyReleased(int k) {
+public void keyReleased(int k) {
         NetworkData.PlayerInput input = playerInputs.get(localPlayerId);
         if (input == null) {
             input = new NetworkData.PlayerInput();
             playerInputs.put(localPlayerId, input);
         }
 
-        // Update input state
-        if (k == KeyEvent.VK_LEFT) input.left = false;
-        if (k == KeyEvent.VK_RIGHT) input.right = false;
-        if (k == KeyEvent.VK_UP) input.up = false;
-        if (k == KeyEvent.VK_DOWN) input.down = false;
-        if (k == KeyEvent.VK_W) input.jumping = false;
+        if (k == KeyEvent.VK_LEFT) {
+            input.left = false;
+            System.out.println("Key released: LEFT for player " + localPlayerId);
+        }
+        if (k == KeyEvent.VK_RIGHT) {
+            input.right = false;
+            System.out.println("Key released: RIGHT for player " + localPlayerId);
+        }
+        if (k == KeyEvent.VK_UP) {
+            input.up = false;
+            System.out.println("Key released: UP for player " + localPlayerId);
+        }
+        if (k == KeyEvent.VK_DOWN) {
+            input.down = false;
+            System.out.println("Key released: DOWN for player " + localPlayerId);
+        }
+        if (k == KeyEvent.VK_W) {
+            input.jumping = false;
+            System.out.println("Key released: W (JUMP) for player " + localPlayerId);
+        }
 
         if (gsm.isHost()) {
             updatePlayerInput(localPlayerId, input);

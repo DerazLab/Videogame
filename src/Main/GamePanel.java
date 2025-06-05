@@ -1,6 +1,8 @@
 package Main;
 
 import GameState.GameStateManager;
+import GameState.Level1State;
+
 import Main.NetworkData;
 import javax.swing.JPanel;
 import java.awt.image.BufferedImage;
@@ -85,8 +87,11 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
 }
 
     private void update() {
-        gsm.update();
+    gsm.update();
+    if (gsm.getGameStates().get(GameStateManager.INLEVEL) instanceof Level1State && !gsm.isHost()) {
+        ((Level1State) gsm.getGameStates().get(GameStateManager.INLEVEL)).updateClientInput();
     }
+}
 
     private void draw() {
         gsm.draw(g);

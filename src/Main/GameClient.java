@@ -46,53 +46,49 @@ public class GameClient {
     }
 
     public void sendInput(NetworkData.PlayerInput input) {
-        try {
-            // Apply input locally for immediate response
-            GameStateManager gsm = gamePanel.getGameStateManager();
-            if (gsm.getGameStates().get(GameStateManager.INLEVEL) instanceof Level1State) {
-                Level1State level = (Level1State) gsm.getGameStates().get(GameStateManager.INLEVEL);
-                level.updatePlayerInput(playerId, input);
-            }
-            // Only send if input has changed to reduce network load
-            if (!input.equals(lastInput)) {
-                out.writeObject(input);
-                out.flush();
-                lastInput = new NetworkData.PlayerInput();
-                lastInput.left = input.left;
-                lastInput.right = input.right;
-                lastInput.up = input.up;
-                lastInput.down = input.down;
-                lastInput.jumping = input.jumping;
-                System.out.println("Sent input: left=" + input.left + ", right=" + input.right + ", jumping=" + input.jumping);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+    try {
+        // Apply input locally for immediate response
+        GameStateManager gsm = gamePanel.getGameStateManager();
+        if (gsm.getGameStates().get(GameStateManager.INLEVEL) instanceof Level1State) {
+            Level1State level = (Level1State) gsm.getGameStates().get(GameStateManager.INLEVEL);
+            level.updatePlayerInput(playerId, input);
         }
+        // Send input only if changed
+        if (!input.equals(lastInput)) {
+            System.out.println("Preparing to send input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
+            out.writeObject(input);
+            out.flush();
+            lastInput = new NetworkData.PlayerInput();
+            lastInput.left = input.left;
+            lastInput.right = input.right;
+            lastInput.up = input.up;
+            lastInput.down = input.down;
+            lastInput.jumping = input.jumping;
+            System.out.println("Sent input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
+        }
+    } catch (IOException e) {
+        e.printStackTrace();
     }
+}
 
     private void receiveGameState() {
-        try {
-            while (connected) {
-                Object obj = in.readObject();
-                if (obj instanceof String && obj.equals("START_GAME")) {
-                    gamePanel.getGameStateManager().setState(GameStateManager.INLEVEL);
-                } else if (obj instanceof GameStateData) {
-                    // Update game state, but preserve local player's input-driven position
-                    GameStateData state = (GameStateData) obj;
-                    Level1State level = (Level1State) gamePanel.getGameStateManager().getGameStates().get(GameStateManager.INLEVEL);
-                    Player localPlayer = level.getPlayer(playerId);
-                    double localX = localPlayer.getx();
-                    double localY = localPlayer.gety();
-                    level.updateGameState(state);
-                    // Restore local player's position to avoid jitter
-                    localPlayer.setPosition(localX, localY);
-                }
+    try {
+        while (connected) {
+            Object obj = in.readObject();
+            if (obj instanceof String && obj.equals("START_GAME")) {
+                gamePanel.getGameStateManager().setState(GameStateManager.INLEVEL);
+            } else if (obj instanceof GameStateData) {
+                GameStateData state = (GameStateData) obj;
+                Level1State level = (Level1State) gamePanel.getGameStateManager().getGameStates().get(GameStateManager.INLEVEL);
+                // Update game state without preserving local position
+                level.updateGameState(state);
             }
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            connected = false;
         }
+    } catch (IOException | ClassNotFoundException e) {
+        e.printStackTrace();
+        connected = false;
     }
+}
 
     public void disconnect() {
         try {
