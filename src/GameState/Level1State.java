@@ -72,6 +72,10 @@ public class Level1State extends GameState {
         return null;
     }
 
+    public ArrayList<Player> getPlayers() {
+        return players;
+    }
+
     public int getPlayerCount() {
         return players.size();
     }
