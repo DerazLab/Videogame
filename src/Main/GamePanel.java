@@ -1,127 +1,146 @@
 package Main;
 
 import GameState.GameStateManager;
-import GameState.Level1State;
+import Main.NetworkData.*;
+import java.io.*;
+import java.net.*;
+import GameState.*;
+import Entity.Player;
 
-import Main.NetworkData;
-import javax.swing.JPanel;
-import java.awt.image.BufferedImage;
-import java.awt.*;
-import java.awt.event.*;
+public class GameClient {
+    private Socket socket;
+    private ObjectOutputStream out;
+    private ObjectInputStream in;
+    private int playerId;
+    private GamePanel gamePanel;
+    private boolean connected;
+    private NetworkData.PlayerInput lastInput;
+    private long lastInputTime;
 
-public class GamePanel extends JPanel implements Runnable, KeyListener {
-    public static final int WIDTH = 320;
-    public static final int HEIGHT = 240;
-    public static final int SCALE = 2;
+    public GameClient(String host, int port, GamePanel gamePanel) {
+        this.gamePanel = gamePanel;
+        lastInput = new NetworkData.PlayerInput();
+        lastInputTime = System.nanoTime();
+        try {
+            socket = new Socket();
+            socket.setSoTimeout(10000); // 5-second timeout
+            socket.connect(new InetSocketAddress(host, port), 5000);
+            out = new ObjectOutputStream(socket.getOutputStream());
+            in = new ObjectInputStream(socket.getInputStream());
+            connected = true;
 
-    private Thread thread;
-    private boolean running;
-    private int FPS = 30;
-    private long milis = 1000 / FPS;
+            // Receive player ID
+            playerId = (Integer) in.readObject();
+            System.out.println("Connected to server with player ID: " + playerId);
 
-    private BufferedImage image;
-    private Graphics2D g;
-    private GameStateManager gsm;
-    private GameClient client;
-
-    public GamePanel(boolean isHost, String hostAddress, int port) {
-        super();
-        setPreferredSize(new Dimension(WIDTH * SCALE, HEIGHT * SCALE));
-        setFocusable(true);
-        requestFocus();
-
-        if (isHost) {
-            gsm = new GameStateManager(true, port);
-        } else {
-            client = new GameClient(hostAddress, port, this);
-            gsm = new GameStateManager(false, port);
-            gsm.setClient(client);
+            // Start thread to receive updates from server
+            new Thread(this::receiveGameState).start();
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("Failed to connect to server: " + e.getMessage());
+            e.printStackTrace();
+            connected = false;
         }
     }
 
-    public void addNotify() {
-        super.addNotify();
-        if (thread == null) {
-            thread = new Thread(this);
-            addKeyListener(this);
-            thread.start();
-        }
+    public boolean isConnected() {
+        return connected;
     }
 
-    private void init() {
-        image = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
-        g = (Graphics2D) image.getGraphics();
-        running = true;
+    public int getPlayerId() {
+        return playerId;
     }
 
-    public void run() {
-    init();
-
-    long targetTime = 1000000000 / FPS; // Target time per frame in nanoseconds
-    long lastTime = System.nanoTime();
-
-    while (running) {
-        long currentTime = System.nanoTime();
-        long elapsed = currentTime - lastTime;
-
-        if (elapsed >= targetTime) {
-            update();
-            draw();
-            drawToScreen();
-            lastTime += targetTime;
-            // Sleep for a small amount to prevent busy-waiting
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+    public void sendInput(NetworkData.PlayerInput input) {
+        try {
+            // Apply input locally for immediate response
+            GameStateManager gsm = gamePanel.getGameStateManager();
+            if (gsm.getGameStates().get(GameStateManager.INLEVEL) instanceof Level1State) {
+                Level1State level = (Level1State) gsm.getGameStates().get(GameStateManager.INLEVEL);
+                level.updatePlayerInput(playerId, input);
             }
-        } else {
-            // Sleep to avoid consuming too much CPU
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            // Send input only if changed and at least 50ms have passed
+            long currentTime = System.nanoTime();
+            if (!input.equals(lastInput) && (currentTime - lastInputTime) / 1000000 >= 50) {
+                System.out.println("Sending input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
+                out.writeObject(input);
+                out.flush();
+                lastInput = new NetworkData.PlayerInput();
+                lastInput.left = input.left;
+                lastInput.right = input.right;
+                lastInput.up = input.up;
+                lastInput.down = input.down;
+                lastInput.jumping = input.jumping;
+                lastInputTime = currentTime;
             }
+        } catch (IOException e) {
+            System.err.println("Failed to send input for player " + playerId + ": " + e.getMessage());
+            e.printStackTrace();
+            disconnect();
         }
     }
-}
 
-    private void update() {
-    gsm.update();
-    if (gsm.getGameStates().get(GameStateManager.INLEVEL) instanceof Level1State && !gsm.isHost()) {
-        ((Level1State) gsm.getGameStates().get(GameStateManager.INLEVEL)).updateClientInput();
+    private void receiveGameState() {
+        try {
+            while (connected) {
+                try {
+                    Object obj = in.readObject();
+                    //System.out.println("Received object for player " + playerId + ": " + obj.getClass().getSimpleName());
+                    if (obj instanceof String) {
+                        if (obj.equals("START_GAME")) {
+                            System.out.println("Received START_GAME signal for player " + playerId);
+                            gamePanel.getGameStateManager().setState(GameStateManager.INLEVEL);
+                        } else if (obj.equals("KEEP_ALIVE")) {
+                            System.out.println("Received KEEP_ALIVE for player " + playerId);
+                        } else {
+                            System.err.println("Unexpected string received for player " + playerId + ": " + obj);
+                        }
+                    } else if (obj instanceof GameStateData) {
+                        GameStateData state = (GameStateData) obj;
+                        //System.out.println("Received GameStateData for player " + playerId + ": players=" + state.players.size() + ", enemies=" + state.enemies.size());
+                        Level1State level = (Level1State) gamePanel.getGameStateManager().getGameStates().get(GameStateManager.INLEVEL);
+                        level.updateGameState(state);
+                    } else {
+                        System.err.println("Unexpected object received for player " + playerId + ": " + obj);
+                    }
+                } catch (SocketTimeoutException e) {
+                    System.out.println("Socket timeout for player " + playerId + ": waiting for server data");
+                    // Continue looping instead of disconnecting
+                    continue;
+                } catch (EOFException e) {
+                    System.err.println("Server connection closed unexpectedly for player " + playerId + ": EOF reached");
+                    disconnect();
+                    break;
+                } catch (IOException e) {
+                    System.err.println("IO error while receiving game state for player " + playerId + ": " + e.getMessage());
+                    e.printStackTrace();
+                    disconnect();
+                    break;
+                } catch (ClassNotFoundException e) {
+                    System.err.println("Class not found while receiving game state for player " + playerId + ": " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        } finally {
+            disconnect();
+        }
     }
-}
 
-    private void draw() {
-        gsm.draw(g);
-    }
-
-    private void drawToScreen() {
-        Graphics g2 = getGraphics();
-        g2.drawImage(image, 0, 0, getWidth(), getHeight(), null);
-        g2.dispose();
-    }
-
-    public void updateGameState(NetworkData.GameStateData state) {
-        gsm.updateGameState(state);
-    }
-
-    public void keyTyped(KeyEvent key) {}
-
-    public void keyPressed(KeyEvent key) {
-        gsm.keyPressed(key.getKeyCode());
-    }
-
-    public void keyReleased(KeyEvent key) {
-        gsm.keyReleased(key.getKeyCode());
-    }
-
-    public GameClient getClient() {
-        return client;
+    public void disconnect() {
+        if (!connected) return;
+        connected = false;
+        try {
+            if (out != null) out.close();
+            if (in != null) in.close();
+            if (socket != null) socket.close();
+            System.out.println("Client " + playerId + " disconnected cleanly");
+        } catch (IOException e) {
+            System.err.println("Error closing client connection for player " + playerId + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+        gamePanel.getGameStateManager().setState(GameStateManager.INMENU);
     }
 
     public GameStateManager getGameStateManager() {
-        return gsm;
+        return gamePanel.getGameStateManager();
     }
 }

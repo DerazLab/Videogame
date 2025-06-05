@@ -14,6 +14,8 @@ public class MenuState extends GameState {
     private Font font;
     private GameServer server;
     private int connectedPlayers = 1;
+    private long lastKeepAlive; // Track last keep-alive time
+    private static final long KEEP_ALIVE_INTERVAL = 2000; // Send every 2 seconds
 
     public MenuState(GameStateManager gsm) {
         this.gsm = gsm;
@@ -31,6 +33,7 @@ public class MenuState extends GameState {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        lastKeepAlive = System.currentTimeMillis();
     }
 
     public void clientConnected() {
@@ -41,6 +44,14 @@ public class MenuState extends GameState {
 
     public void update() {
         bg.update();
+        // Send keep-alive messages periodically
+        if (gsm.isHost() && server != null) {
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastKeepAlive >= KEEP_ALIVE_INTERVAL) {
+                server.broadcastGameState(); // Sends KEEP_ALIVE when gameState is null
+                lastKeepAlive = currentTime;
+            }
+        }
     }
 
     public void draw(Graphics2D g) {

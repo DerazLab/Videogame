@@ -18,29 +18,29 @@ public class GameClient {
     private long lastInputTime;
 
     public GameClient(String host, int port, GamePanel gamePanel) {
-    this.gamePanel = gamePanel;
-    lastInput = new NetworkData.PlayerInput();
-    lastInputTime = System.nanoTime();
-    try {
-        socket = new Socket();
-        socket.setSoTimeout(5000); // 5-second timeout
-        socket.connect(new InetSocketAddress(host, port), 5000);
-        out = new ObjectOutputStream(socket.getOutputStream());
-        in = new ObjectInputStream(socket.getInputStream());
-        connected = true;
+        this.gamePanel = gamePanel;
+        lastInput = new NetworkData.PlayerInput();
+        lastInputTime = System.nanoTime();
+        try {
+            socket = new Socket();
+            socket.setSoTimeout(10000); // 5-second timeout
+            socket.connect(new InetSocketAddress(host, port), 5000);
+            out = new ObjectOutputStream(socket.getOutputStream());
+            in = new ObjectInputStream(socket.getInputStream());
+            connected = true;
 
-        // Recibir el ID del jugador
-        playerId = (Integer) in.readObject();
-        System.out.println("Connected to server with player ID: " + playerId);
+            // Receive player ID
+            playerId = (Integer) in.readObject();
+            System.out.println("Connected to server with player ID: " + playerId);
 
-        // Iniciar hilo para recibir actualizaciones del servidor
-        new Thread(this::receiveGameState).start();
-    } catch (IOException | ClassNotFoundException e) {
-        System.err.println("Failed to connect to server: " + e.getMessage());
-        e.printStackTrace();
-        connected = false;
+            // Start thread to receive updates from server
+            new Thread(this::receiveGameState).start();
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("Failed to connect to server: " + e.getMessage());
+            e.printStackTrace();
+            connected = false;
+        }
     }
-}
 
     public boolean isConnected() {
         return connected;
@@ -80,57 +80,50 @@ public class GameClient {
     }
 
     private void receiveGameState() {
-    int consecutiveTimeouts = 0;
-    int maxTimeouts = 3; // Número máximo de timeouts permitidos antes de desconectar
-    try {
-        while (connected) {
-            try {
-                Object obj = in.readObject();
-                consecutiveTimeouts = 0; // Reiniciar el contador si se recibe algo
-                // Procesar el objeto recibido (código existente)
-                if (obj instanceof String) {
-					if (obj.equals("START_GAME")) {
-						System.out.println("Received START_GAME signal for player " + playerId);
-						gamePanel.getGameStateManager().setState(GameStateManager.INLEVEL);
-					} else if (obj.equals("KEEP_ALIVE")) {
-						System.out.println("Received KEEP_ALIVE for player " + playerId);
-					} else {
-						System.err.println("Unexpected string received for player " + playerId + ": " + obj);
-					}
-                } else if (obj instanceof GameStateData) {
-                    GameStateData state = (GameStateData) obj;
-                    Level1State level = (Level1State) gamePanel.getGameStateManager().getGameStates().get(GameStateManager.INLEVEL);
-                    level.updateGameState(state);
-                } else {
-                    System.err.println("Unexpected object received for player " + playerId + ": " + obj);
-                }
-				
-            } catch (EOFException e) {
-                System.err.println("Server connection closed unexpectedly for player " + playerId + ": EOF reached");
-                disconnect();
-                break;
-            } catch (SocketTimeoutException e) {
-                consecutiveTimeouts++;
-                System.out.println("Timeout " + consecutiveTimeouts + " for player " + playerId);
-                if (consecutiveTimeouts >= maxTimeouts) {
-                    System.err.println("Max timeouts reached for player " + playerId + ": Disconnecting");
+        try {
+            while (connected) {
+                try {
+                    Object obj = in.readObject();
+                    //System.out.println("Received object for player " + playerId + ": " + obj.getClass().getSimpleName());
+                    if (obj instanceof String) {
+                        if (obj.equals("START_GAME")) {
+                            System.out.println("Received START_GAME signal for player " + playerId);
+                            gamePanel.getGameStateManager().setState(GameStateManager.INLEVEL);
+                        } else if (obj.equals("KEEP_ALIVE")) {
+                            System.out.println("Received KEEP_ALIVE for player " + playerId);
+                        } else {
+                            System.err.println("Unexpected string received for player " + playerId + ": " + obj);
+                        }
+                    } else if (obj instanceof GameStateData) {
+                        GameStateData state = (GameStateData) obj;
+                        //System.out.println("Received GameStateData for player " + playerId + ": players=" + state.players.size() + ", enemies=" + state.enemies.size());
+                        Level1State level = (Level1State) gamePanel.getGameStateManager().getGameStates().get(GameStateManager.INLEVEL);
+                        level.updateGameState(state);
+                    } else {
+                        System.err.println("Unexpected object received for player " + playerId + ": " + obj);
+                    }
+                } catch (SocketTimeoutException e) {
+                    System.out.println("Socket timeout for player " + playerId + ": waiting for server data");
+                    // Continue looping instead of disconnecting
+                    continue;
+                } catch (EOFException e) {
+                    System.err.println("Server connection closed unexpectedly for player " + playerId + ": EOF reached");
                     disconnect();
                     break;
+                } catch (IOException e) {
+                    System.err.println("IO error while receiving game state for player " + playerId + ": " + e.getMessage());
+                    e.printStackTrace();
+                    disconnect();
+                    break;
+                } catch (ClassNotFoundException e) {
+                    System.err.println("Class not found while receiving game state for player " + playerId + ": " + e.getMessage());
+                    e.printStackTrace();
                 }
-            } catch (IOException e) {
-                System.err.println("IO error while receiving game state for player " + playerId + ": " + e.getMessage());
-                e.printStackTrace();
-                disconnect();
-                break;
-            } catch (ClassNotFoundException e) {
-                System.err.println("Class not found while receiving game state for player " + playerId + ": " + e.getMessage());
-                e.printStackTrace();
             }
+        } finally {
+            disconnect();
         }
-    } finally {
-        disconnect();
     }
-}
 
     public void disconnect() {
         if (!connected) return;
