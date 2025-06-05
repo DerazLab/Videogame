@@ -68,7 +68,7 @@ public class GameServer {
             Player player = gameState.getPlayer(i);
             if (player != null) {
                 state.players.add(new PlayerData(player.getx(), player.gety(), player.getHealth(), player.getScore(), player.isFacingRight()));
-                System.out.println("Broadcasting player " + i + ": x=" + player.getx() + ", y=" + player.gety());
+                //System.out.println("Broadcasting player " + i + ": x=" + player.getx() + ", y=" + player.gety());
             }
         }
         for (Enemy enemy : gameState.getEnemies()) {
@@ -110,7 +110,7 @@ public class GameServer {
                 if (obj instanceof NetworkData.PlayerInput && gameState != null) {
                     NetworkData.PlayerInput input = (NetworkData.PlayerInput) obj;
                     gameState.updatePlayerInput(playerId, input);
-                    System.out.println("Received input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
+                    //System.out.println("Received input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
                 }
             }
         } catch (IOException | ClassNotFoundException e) {

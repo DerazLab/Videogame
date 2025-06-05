@@ -55,7 +55,7 @@ public class GameClient {
         }
         // Send input only if changed
         if (!input.equals(lastInput)) {
-            System.out.println("Preparing to send input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
+            //System.out.println("Preparing to send input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
             out.writeObject(input);
             out.flush();
             lastInput = new NetworkData.PlayerInput();
@@ -64,7 +64,7 @@ public class GameClient {
             lastInput.up = input.up;
             lastInput.down = input.down;
             lastInput.jumping = input.jumping;
-            System.out.println("Sent input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
+            //System.out.println("Sent input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
         }
     } catch (IOException e) {
         e.printStackTrace();
