@@ -98,7 +98,7 @@ public class Level1State extends GameState {
         newInput.down = input.down;
         newInput.jumping = input.jumping;
         playerInputs.put(playerId, newInput);
-        System.out.println("Applying input for player " + playerId + ": left=" + newInput.left + ", right=" + newInput.right + ", up=" + newInput.up + ", down=" + newInput.down + ", jumping=" + newInput.jumping);
+        //System.out.println("Applying input for player " + playerId + ": left=" + newInput.left + ", right=" + newInput.right + ", up=" + newInput.up + ", down=" + newInput.down + ", jumping=" + newInput.jumping);
         player.setLeft(newInput.left);
         player.setRight(newInput.right);
         player.setUp(newInput.up);
@@ -221,23 +221,23 @@ public class Level1State extends GameState {
 
         if (k == KeyEvent.VK_LEFT) {
             input.left = true;
-            System.out.println("Key pressed: LEFT for player " + localPlayerId);
+            //System.out.println("Key pressed: LEFT for player " + localPlayerId);
         }
         if (k == KeyEvent.VK_RIGHT) {
             input.right = true;
-            System.out.println("Key pressed: RIGHT for player " + localPlayerId);
+            //System.out.println("Key pressed: RIGHT for player " + localPlayerId);
         }
         if (k == KeyEvent.VK_UP) {
             input.up = true;
-            System.out.println("Key pressed: UP for player " + localPlayerId);
+            //System.out.println("Key pressed: UP for player " + localPlayerId);
         }
         if (k == KeyEvent.VK_DOWN) {
             input.down = true;
-            System.out.println("Key pressed: DOWN for player " + localPlayerId);
+            //System.out.println("Key pressed: DOWN for player " + localPlayerId);
         }
         if (k == KeyEvent.VK_W) {
             input.jumping = true;
-            System.out.println("Key pressed: W (JUMP) for player " + localPlayerId);
+            //System.out.println("Key pressed: W (JUMP) for player " + localPlayerId);
         }
 
         if (gsm.isHost()) {
@@ -256,23 +256,23 @@ public void keyReleased(int k) {
 
         if (k == KeyEvent.VK_LEFT) {
             input.left = false;
-            System.out.println("Key released: LEFT for player " + localPlayerId);
+            //System.out.println("Key released: LEFT for player " + localPlayerId);
         }
         if (k == KeyEvent.VK_RIGHT) {
             input.right = false;
-            System.out.println("Key released: RIGHT for player " + localPlayerId);
+            //System.out.println("Key released: RIGHT for player " + localPlayerId);
         }
         if (k == KeyEvent.VK_UP) {
             input.up = false;
-            System.out.println("Key released: UP for player " + localPlayerId);
+            //System.out.println("Key released: UP for player " + localPlayerId);
         }
         if (k == KeyEvent.VK_DOWN) {
             input.down = false;
-            System.out.println("Key released: DOWN for player " + localPlayerId);
+            //System.out.println("Key released: DOWN for player " + localPlayerId);
         }
         if (k == KeyEvent.VK_W) {
             input.jumping = false;
-            System.out.println("Key released: W (JUMP) for player " + localPlayerId);
+            //System.out.println("Key released: W (JUMP) for player " + localPlayerId);
         }
 
         if (gsm.isHost()) {
