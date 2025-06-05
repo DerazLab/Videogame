@@ -66,37 +66,43 @@ public class GameServer {
     }
 
     public void broadcastGameState() {
-        if (gameState == null) return;
-        try {
-            GameStateData state = new GameStateData();
-            state.players = new ArrayList<>();
-            state.enemies = new ArrayList<>();
-            for (int i = 0; i < gameState.getPlayerCount(); i++) {
-                Player player = gameState.getPlayer(i);
-                if (player != null) {
-                    state.players.add(new PlayerData(
-                        player.getx(), 
-                        player.gety(), 
-                        player.getHealth(), 
-                        player.getScore(), 
-                        player.isFacingRight(), 
-                        player.isDead(),
-                        player.isHoldingFlag()
-                    ));
-                }
-            }
-            for (Enemy enemy : gameState.getEnemies()) {
-                state.enemies.add(new EnemyData(enemy.getx(), enemy.gety(), enemy.getHealth(), enemy.isDead()));
-            }
-            //System.out.println("Broadcasting game state: players=" + state.players.size() + ", enemies=" + state.enemies.size());
-            for (ClientHandler client : clients) {
-                client.sendGameState(state);
-            }
-        } catch (Exception e) {
-            System.err.println("Error broadcasting game state: " + e.getMessage());
-            e.printStackTrace();
+    if (gameState == null) {
+        // Enviar un mensaje "keep-alive" si no hay estado del juego
+        for (ClientHandler client : clients) {
+            client.sendKeepAlive();
         }
+        return;
     }
+    try {
+        GameStateData state = new GameStateData();
+        // Llenar el estado del juego (código existente)
+        state.players = new ArrayList<>();
+        state.enemies = new ArrayList<>();
+        for (int i = 0; i < gameState.getPlayerCount(); i++) {
+            Player player = gameState.getPlayer(i);
+            if (player != null) {
+                state.players.add(new PlayerData(
+                    player.getx(), 
+                    player.gety(), 
+                    player.getHealth(), 
+                    player.getScore(), 
+                    player.isFacingRight(), 
+                    player.isDead(),
+                    player.isHoldingFlag()
+                ));
+            }
+        }
+        for (Enemy enemy : gameState.getEnemies()) {
+            state.enemies.add(new EnemyData(enemy.getx(), enemy.gety(), enemy.getHealth(), enemy.isDead()));
+        }
+        for (ClientHandler client : clients) {
+            client.sendGameState(state);
+        }
+    } catch (Exception e) {
+        System.err.println("Error broadcasting game state: " + e.getMessage());
+        e.printStackTrace();
+    }
+}
 
     private class ClientHandler implements Runnable {
         private Socket socket;
@@ -116,6 +122,16 @@ public class GameServer {
 				e.printStackTrace();
 			}
 		}
+		
+		public void sendKeepAlive() {
+    try {
+        out.writeObject("KEEP_ALIVE");
+        out.flush();
+    } catch (IOException e) {
+        System.err.println("Error sending keep-alive to client " + playerId + ": " + e.getMessage());
+        e.printStackTrace();
+    }
+}
 
         @Override
 public void run() {
