@@ -32,7 +32,7 @@ public class Player extends MapObject {
     public Player(TileMap tm, int playerId) {
         super(tm);
 
-        this.playerId = playerId; //SKINS ----
+        this.playerId = playerId;
 
         width = 16;
         height = 16;
@@ -52,7 +52,6 @@ public class Player extends MapObject {
         health = maxHealth = 5;
         score = 0;
 
-        //CHANGED ------------------------------------------------->
         try {
             String spritePath = playerId == 0 ? 
                 "/Resources/Sprites/Player/MarioSprites.png" : 
@@ -72,7 +71,6 @@ public class Player extends MapObject {
             System.err.println("Error al cargar sprites para player " + playerId + ": " + e.getMessage());
             e.printStackTrace();
         }
-        // <------------------------------------------------- CHANGED 
 
         animation = new Animation();
         currentAction = IDLE;
@@ -87,11 +85,18 @@ public class Player extends MapObject {
     public int getMaxHealth() { return maxHealth; }
     public int getScore() { return score; }
     public boolean isFacingRight() { return facingRight; }
+    public boolean isDead() { return dead; }
 
     public void setHealth(int health) { 
         this.health = health;
-        if (health <= 0) dead = true;
+        if (health <= 0) {
+            dead = true;
+            currentAction = DEAD;
+            animation.setFrames(sprites.get(DEAD));
+            animation.setDelay(-1); // Static death frame
+        }
     }
+
     public void setScore(int score) { this.score = score; }
     public void setFacingRight(boolean facingRight) { this.facingRight = facingRight; }
 
@@ -103,66 +108,75 @@ public class Player extends MapObject {
             dead = true;
             currentAction = DEAD;
             animation.setFrames(sprites.get(DEAD));
-            animation.setDelay(-1);
+            animation.setDelay(-1); // Static death frame
         } else {
             flinching = true;
             flinchTimer = System.nanoTime();
         }
     }
 
-    public boolean isDead() { return dead; }
-
     public double getDy() { return dy; }
 
     public void setDy(double dy) {
+        if (dead) return; // Prevent movement when dead
         this.dy = dy;
         if (dy < 0) jumping = true;
         else if (dy > 0) falling = true;
     }
 
     private void getNextPosition() {
-    // Handle horizontal movement
-    if (left && !right) {
-        dx -= moveSpeed;
-        if (dx < -maxSpeed) {
-            dx = -maxSpeed;
+        if (dead) {
+            dx = 0; // Stop horizontal movement
+            dy = 0; // Stop vertical movement
+            return;
         }
-    } else if (right && !left) {
-        dx += moveSpeed;
-        if (dx > maxSpeed) {
-            dx = maxSpeed;
-        }
-    } else if (left && right) {
-        dx = 0; // Cancel movement if both are pressed
-    } else {
-        if (dx > 0) {
-            dx -= stopSpeed;
-            if (dx < 0) {
-                dx = 0;
+        // Handle horizontal movement
+        if (left && !right) {
+            dx -= moveSpeed;
+            if (dx < -maxSpeed) {
+                dx = -maxSpeed;
             }
-        } else if (dx < 0) {
-            dx += stopSpeed;
+        } else if (right && !left) {
+            dx += moveSpeed;
+            if (dx > maxSpeed) {
+                dx = maxSpeed;
+            }
+        } else if (left && right) {
+            dx = 0;
+        } else {
             if (dx > 0) {
-                dx = 0;
+                dx -= stopSpeed;
+                if (dx < 0) {
+                    dx = 0;
+                }
+            } else if (dx < 0) {
+                dx += stopSpeed;
+                if (dx > 0) {
+                    dx = 0;
+                }
             }
         }
-    }
 
-    // Handle vertical movement (jumping and falling)
-    if (jumping && !falling) {
-        dy = jumpStart;
-        falling = true;
-    }
+        // Handle vertical movement (jumping and falling)
+        if (jumping && !falling) {
+            dy = jumpStart;
+            falling = true;
+        }
 
-    if (falling) {
-        dy += fallSpeed;
-        if (dy > 0) jumping = false;
-        if (dy < 0 && !jumping) dy += stopJumpSpeed;
-        if (dy > maxFallSpeed) dy = maxFallSpeed;
+        if (falling) {
+            dy += fallSpeed;
+            if (dy > 0) jumping = false;
+            if (dy < 0 && !jumping) dy += stopJumpSpeed;
+            if (dy > maxFallSpeed) dy = maxFallSpeed;
+        }
     }
-}
 
     public void update() {
+        if (dead) {
+            animation.update(); // Keep updating animation for death frame
+            return;
+        }
+
         getNextPosition();
         checkTileMapCollision();
         setPosition(xtemp, ytemp);
@@ -212,7 +226,7 @@ public class Player extends MapObject {
 
     public void draw(Graphics2D g) {
         setMapPosition();
-        if (flinching) {
+        if (flinching && !dead) {
             long elapsed = (System.nanoTime() - flinchTimer) / 1000000;
             if (elapsed / 100 % 2 == 0) {
                 return;
