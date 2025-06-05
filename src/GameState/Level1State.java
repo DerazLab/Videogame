@@ -20,6 +20,7 @@ public class Level1State extends GameState {
     private int localPlayerId;
     private Map<Integer, NetworkData.PlayerInput> playerInputs;
     private Map<Integer, Long> lastInputTimes;
+    private Flagpole flagpole;
 
     public Level1State(GameStateManager gsm) {
         this.gsm = gsm;
@@ -28,7 +29,7 @@ public class Level1State extends GameState {
         lastInputTimes = new HashMap<>();
         init();
     }
-	
+
     public void init() {
         tileMap = new TileMap(16);
         tileMap.loadTiles("Resources/Tilesets/tileset1.png");
@@ -49,6 +50,10 @@ public class Level1State extends GameState {
         Goomba goomba = new Goomba(tileMap);
         goomba.setPosition(100, 100);
         enemies.add(goomba);
+
+        // Initialize flagpole (adjust coordinates based on your map)
+        flagpole = new Flagpole(tileMap, 300, 100); // Example position, adjust to match flagpole tiles
+        flagpole.setPosition(300, 100);
 
         if (gsm.isHost()) {
             server = ((MenuState) gsm.getGameStates().get(GameStateManager.INMENU)).getServer();
@@ -89,7 +94,7 @@ public class Level1State extends GameState {
 
     public void updatePlayerInput(int playerId, NetworkData.PlayerInput input) {
         Player player = getPlayer(playerId);
-        if (player != null && !player.isDead()) {
+        if (player != null && !player.isDead() && !player.isHoldingFlag()) {
             NetworkData.PlayerInput newInput = new NetworkData.PlayerInput();
             newInput.left = input.left;
             newInput.right = input.right;
@@ -110,14 +115,15 @@ public class Level1State extends GameState {
         for (int i = 0; i < state.players.size() && i < players.size(); i++) {
             NetworkData.PlayerData data = state.players.get(i);
             Player player = players.get(i);
-            if (i != localPlayerId || data.dead) {
+            if (i != localPlayerId || data.dead || data.holdingFlag) {
                 player.setPosition(data.x, data.y);
             }
             player.setHealth(data.health);
             player.setScore(data.score);
             player.setFacingRight(data.facingRight);
+            player.setHoldingFlag(data.holdingFlag);
             if (data.dead) {
-                player.setHealth(0); // Ensure dead state is set
+                player.setHealth(0);
             }
         }
         if (state.enemies != null) {
@@ -151,7 +157,7 @@ public class Level1State extends GameState {
             if (!player.isDead()) {
                 player.update();
             } else {
-                player.update(); // Update animation for death sprite
+                player.update();
             }
         }
 
@@ -164,7 +170,7 @@ public class Level1State extends GameState {
                 continue;
             }
             for (Player player : players) {
-                if (!player.isDead() && player.intersects(enemy)) {
+                if (!player.isDead() && !player.isHoldingFlag() && player.intersects(enemy)) {
                     if (player.getDy() > 0 && player.gety() < enemy.gety()) {
                         if (gsm.isHost()) {
                             player.setDy(-5);
@@ -180,6 +186,23 @@ public class Level1State extends GameState {
                         }
                     }
                 }
+            }
+        }
+
+        // Check for level completion
+        if (gsm.isHost() && flagpole.isActive()) {
+            boolean allHolding = true;
+            for (Player player : players) {
+                if (!player.isDead() && !player.isHoldingFlag()) {
+                    allHolding = false;
+                    break;
+                }
+            }
+            if (allHolding && players.size() > 1) {
+                flagpole.setActive(false);
+                // Transition to next state or display win screen
+                gsm.setState(GameStateManager.INMENU); // Example: return to menu
+                // Alternatively, create a new GameState for level completion
             }
         }
 
@@ -209,8 +232,8 @@ public class Level1State extends GameState {
 
     public void keyPressed(int k) {
         Player localPlayer = getPlayer(localPlayerId);
-        if (localPlayer != null && localPlayer.isDead()) {
-            return; // Ignore input for dead players
+        if (localPlayer != null && (localPlayer.isDead() || localPlayer.isHoldingFlag())) {
+            return;
         }
 
         NetworkData.PlayerInput input = playerInputs.get(localPlayerId);
@@ -244,8 +267,8 @@ public class Level1State extends GameState {
 
     public void keyReleased(int k) {
         Player localPlayer = getPlayer(localPlayerId);
-        if (localPlayer != null && localPlayer.isDead()) {
-            return; // Ignore input for dead players
+        if (localPlayer != null && (localPlayer.isDead() || localPlayer.isHoldingFlag())) {
+            return;
         }
 
         NetworkData.PlayerInput input = playerInputs.get(localPlayerId);

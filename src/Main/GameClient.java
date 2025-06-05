@@ -14,11 +14,12 @@ public class GameClient {
     private int playerId;
     private GamePanel gamePanel;
     private boolean connected;
-    private NetworkData.PlayerInput lastInput; // Track last sent input
+    private NetworkData.PlayerInput lastInput;
+	private long lastInputTime;
 
     public GameClient(String host, int port, GamePanel gamePanel) {
         this.gamePanel = gamePanel;
-        lastInput = new NetworkData.PlayerInput(); // Initialize default input
+        lastInput = new NetworkData.PlayerInput();
         try {
             socket = new Socket(host, port);
             out = new ObjectOutputStream(socket.getOutputStream());
@@ -32,6 +33,7 @@ public class GameClient {
             // Iniciar hilo para recibir actualizaciones del servidor
             new Thread(this::receiveGameState).start();
         } catch (IOException | ClassNotFoundException e) {
+            System.err.println("Failed to connect to server: " + e.getMessage());
             e.printStackTrace();
             connected = false;
         }
@@ -53,9 +55,10 @@ public class GameClient {
             Level1State level = (Level1State) gsm.getGameStates().get(GameStateManager.INLEVEL);
             level.updatePlayerInput(playerId, input);
         }
-        // Send input only if changed
-        if (!input.equals(lastInput)) {
-            //System.out.println("Preparing to send input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
+        // Send input only if changed and at least 50ms have passed
+        long currentTime = System.nanoTime();
+        long lastSendTime = lastInputTime; // Add a field to track last send time
+        if (!input.equals(lastInput) && (currentTime - lastSendTime) / 1000000 >= 50) {
             out.writeObject(input);
             out.flush();
             lastInput = new NetworkData.PlayerInput();
@@ -64,42 +67,62 @@ public class GameClient {
             lastInput.up = input.up;
             lastInput.down = input.down;
             lastInput.jumping = input.jumping;
-            //System.out.println("Sent input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
+            lastInputTime = currentTime; // Update last send time
         }
     } catch (IOException e) {
+        System.err.println("Failed to send input for player " + playerId + ": " + e.getMessage());
         e.printStackTrace();
+        disconnect();
     }
 }
 
     private void receiveGameState() {
-    try {
-        while (connected) {
-            Object obj = in.readObject();
-            if (obj instanceof String && obj.equals("START_GAME")) {
-                gamePanel.getGameStateManager().setState(GameStateManager.INLEVEL);
-            } else if (obj instanceof GameStateData) {
-                GameStateData state = (GameStateData) obj;
-                Level1State level = (Level1State) gamePanel.getGameStateManager().getGameStates().get(GameStateManager.INLEVEL);
-                // Update game state without preserving local position
-                level.updateGameState(state);
+        try {
+            while (connected) {
+                try {
+                    Object obj = in.readObject();
+                    if (obj instanceof String && obj.equals("START_GAME")) {
+                        gamePanel.getGameStateManager().setState(GameStateManager.INLEVEL);
+                    } else if (obj instanceof GameStateData) {
+                        GameStateData state = (GameStateData) obj;
+                        Level1State level = (Level1State) gamePanel.getGameStateManager().getGameStates().get(GameStateManager.INLEVEL);
+                        level.updateGameState(state);
+                    }
+                } catch (EOFException e) {
+                    System.err.println("Server connection closed unexpectedly: EOF reached");
+                    disconnect();
+                    break;
+                } catch (IOException e) {
+                    System.err.println("IO error while receiving game state: " + e.getMessage());
+                    e.printStackTrace();
+                    disconnect();
+                    break;
+                } catch (ClassNotFoundException e) {
+                    System.err.println("Class not found while receiving game state: " + e.getMessage());
+                    e.printStackTrace();
+                }
             }
+        } finally {
+            disconnect();
         }
-    } catch (IOException | ClassNotFoundException e) {
-        e.printStackTrace();
-        connected = false;
     }
-}
 
     public void disconnect() {
+        if (!connected) return;
+        connected = false;
         try {
-            connected = false;
-            socket.close();
+            if (out != null) out.close();
+            if (in != null) in.close();
+            if (socket != null) socket.close();
+            System.out.println("Client " + playerId + " disconnected cleanly");
         } catch (IOException e) {
+            System.err.println("Error closing client connection: " + e.getMessage());
             e.printStackTrace();
         }
+        // Notify user or transition to menu
+        gamePanel.getGameStateManager().setState(GameStateManager.INMENU);
     }
 
-    // Método para obtener GameStateManager
     public GameStateManager getGameStateManager() {
         return gamePanel.getGameStateManager();
     }

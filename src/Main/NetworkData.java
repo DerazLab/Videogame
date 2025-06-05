@@ -15,14 +15,16 @@ public class NetworkData {
         public int health, score;
         public boolean facingRight;
         public boolean dead;
+        public boolean holdingFlag;
 
-        public PlayerData(double x, double y, int health, int score, boolean facingRight, boolean dead) {
+        public PlayerData(double x, double y, int health, int score, boolean facingRight, boolean dead, boolean holdingFlag) {
             this.x = x;
             this.y = y;
             this.health = health;
             this.score = score;
             this.facingRight = facingRight;
             this.dead = dead;
+            this.holdingFlag = holdingFlag;
         }
     }
 

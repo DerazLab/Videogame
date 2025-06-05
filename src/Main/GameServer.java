@@ -35,15 +35,21 @@ public class GameServer {
             System.out.println("Server started on port " + port);
 
             while (clients.size() < 2) {
-                Socket clientSocket = serverSocket.accept();
-                System.out.println("New client connected: " + clientSocket.getInetAddress().getHostAddress());
-                ClientHandler client = new ClientHandler(clientSocket, clients.size() + 1);
-                clients.add(client);
-                playerIds.add(clients.size());
-                new Thread(client).start();
-                menuState.clientConnected();
+                try {
+                    Socket clientSocket = serverSocket.accept();
+                    System.out.println("New client connected: " + clientSocket.getInetAddress().getHostAddress());
+                    ClientHandler client = new ClientHandler(clientSocket, clients.size() + 1);
+                    clients.add(client);
+                    playerIds.add(clients.size());
+                    new Thread(client).start();
+                    menuState.clientConnected();
+                } catch (IOException e) {
+                    System.err.println("Error accepting client connection: " + e.getMessage());
+                    e.printStackTrace();
+                }
             }
         } catch (IOException e) {
+            System.err.println("Failed to start server on port " + port + ": " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -54,6 +60,7 @@ public class GameServer {
                 client.sendGameStart();
             }
         } catch (Exception e) {
+            System.err.println("Error notifying game start: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -73,7 +80,8 @@ public class GameServer {
                         player.getHealth(), 
                         player.getScore(), 
                         player.isFacingRight(), 
-                        player.isDead()
+                        player.isDead(),
+                        player.isHoldingFlag()
                     ));
                 }
             }
@@ -84,6 +92,7 @@ public class GameServer {
                 client.sendGameState(state);
             }
         } catch (Exception e) {
+            System.err.println("Error broadcasting game state: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -101,6 +110,7 @@ public class GameServer {
                 out = new ObjectOutputStream(socket.getOutputStream());
                 in = new ObjectInputStream(socket.getInputStream());
             } catch (IOException e) {
+                System.err.println("Error initializing streams for client " + playerId + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -112,14 +122,28 @@ public class GameServer {
                 out.flush();
 
                 while (true) {
-                    Object obj = in.readObject();
-                    if (obj instanceof NetworkData.PlayerInput && gameState != null) {
-                        NetworkData.PlayerInput input = (NetworkData.PlayerInput) obj;
-                        gameState.updatePlayerInput(playerId, input);
+                    try {
+                        Object obj = in.readObject();
+                        if (obj instanceof NetworkData.PlayerInput && gameState != null) {
+                            NetworkData.PlayerInput input = (NetworkData.PlayerInput) obj;
+                            gameState.updatePlayerInput(playerId, input);
+                        }
+                    } catch (EOFException e) {
+                        System.out.println("Client " + playerId + " disconnected: EOF reached");
+                        break;
+                    } catch (IOException e) {
+                        System.out.println("IO error for client " + playerId + ": " + e.getMessage());
+                        e.printStackTrace();
+                        break;
+                    } catch (ClassNotFoundException e) {
+                        System.err.println("Class not found for client " + playerId + ": " + e.getMessage());
+                        e.printStackTrace();
                     }
                 }
-            } catch (IOException | ClassNotFoundException e) {
-                System.out.println("Client " + playerId + " disconnected");
+            } catch (IOException e) {
+                System.out.println("Initial connection error for client " + playerId + ": " + e.getMessage());
+                e.printStackTrace();
+            } finally {
                 clients.remove(this);
                 if (gameState != null) {
                     Player player = gameState.getPlayer(playerId);
@@ -127,10 +151,13 @@ public class GameServer {
                         gameState.getPlayers().remove(player);
                     }
                 }
-            } finally {
                 try {
-                    socket.close();
+                    if (out != null) out.close();
+                    if (in != null) in.close();
+                    if (socket != null) socket.close();
+                    System.out.println("Client " + playerId + " connection closed cleanly");
                 } catch (IOException e) {
+                    System.err.println("Error closing connection for client " + playerId + ": " + e.getMessage());
                     e.printStackTrace();
                 }
             }
@@ -141,6 +168,7 @@ public class GameServer {
                 out.writeObject(state);
                 out.flush();
             } catch (IOException e) {
+                System.err.println("Error sending game state to client " + playerId + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -150,6 +178,7 @@ public class GameServer {
                 out.writeObject("START_GAME");
                 out.flush();
             } catch (IOException e) {
+                System.err.println("Error sending game start to client " + playerId + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }
