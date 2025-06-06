@@ -78,6 +78,7 @@ public class Goomba extends Enemy {
             facingRight = true;
         }
         animation.update();
+		super.update();
     }
 
     public void draw(java.awt.Graphics2D g) {
