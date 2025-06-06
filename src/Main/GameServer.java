@@ -159,61 +159,71 @@ public class GameServer {
         }
 
         @Override
-        public void run() {
-            try {
-                out.writeObject(playerId);
-                out.flush();
-                System.out.println("Sent player ID " + playerId + " to client");
+public void run() {
+    try {
+        out.writeObject(playerId); // Envía el ID del jugador al cliente
+        out.flush();
+        System.out.println("Sent player ID " + playerId + " to client");
 
-                while (true) {
-                    try {
-                        Object obj = in.readObject();
-                        System.out.println("Received object from client " + playerId + ": " + obj.getClass().getSimpleName());
-                        if (obj instanceof NetworkData.PlayerInput && gameState != null) {
-                            NetworkData.PlayerInput input = (NetworkData.PlayerInput) obj;
-                            System.out.println("Received input from client " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
-                            gameState.updatePlayerInput(playerId, input);
-                        } else {
-                            System.err.println("Unexpected object received from client " + playerId + ": " + obj);
-                        }
-                    } catch (SocketTimeoutException e) {
-                        System.out.println("Socket timeout for client " + playerId + ": " + e.getMessage());
-                        continue;
-                    } catch (EOFException e) {
-                        System.out.println("Client " + playerId + " disconnected: EOF reached");
-                        break;
-                    } catch (IOException e) {
-                        System.out.println("IO error for client " + playerId + ": " + e.getMessage());
-                        e.printStackTrace();
-                        break;
-                    } catch (ClassNotFoundException e) {
-                        System.err.println("Class not found for client " + playerId + ": " + e.getMessage());
-                        e.printStackTrace();
-                    }
+        while (true) {
+            try {
+                Object obj = in.readObject(); // Lee el objeto del stream
+                System.out.println("Received object from client " + playerId + ": " + obj.getClass().getSimpleName());
+                if (obj instanceof NetworkData.PlayerInput && gameState != null) {
+                    NetworkData.PlayerInput input = (NetworkData.PlayerInput) obj;
+                    System.out.println("Received input from client " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
+                    gameState.updatePlayerInput(playerId, input); // Actualiza el estado del juego
+                } else {
+                    System.err.println("Unexpected object received from client " + playerId + ": " + obj);
+                }
+            } catch (SocketTimeoutException e) {
+                System.out.println("Socket timeout for client " + playerId + ": " + e.getMessage());
+                continue; // Continúa esperando datos
+            } catch (EOFException e) {
+                System.out.println("Client " + playerId + " disconnected: EOF reached");
+                break; // Sale del bucle si el cliente se desconecta
+            } catch (OptionalDataException e) {
+                System.err.println("OptionalDataException for client " + playerId + ": " + e.getMessage());
+                if (e.eof) {
+                    System.out.println("EOF reached for client " + playerId);
+                    break; // Sale si el stream terminó
+                } else {
+                    System.err.println("Primitive data found: length=" + e.length);
+                    // Aquí podrías manejar datos primitivos si fuera necesario
                 }
             } catch (IOException e) {
-                System.out.println("Initial connection error for client " + playerId + ": " + e.getMessage());
+                System.err.println("IO error for client " + playerId + ": " + e.getMessage());
                 e.printStackTrace();
-            } finally {
-                clients.remove(this);
-                if (gameState != null) {
-                    Player player = gameState.getPlayer(playerId);
-                    if (player != null) {
-                        gameState.getPlayers().remove(player);
-                        System.out.println("Removed player " + playerId + " from game state");
-                    }
-                }
-                try {
-                    if (out != null) out.close();
-                    if (in != null) in.close();
-                    if (socket != null) socket.close();
-                    System.out.println("Client " + playerId + " connection closed cleanly");
-                } catch (IOException e) {
-                    System.err.println("Error closing connection for client " + playerId + ": " + e.getMessage());
-                    e.printStackTrace();
-                }
+                break; // Sale si hay un error de E/S
+            } catch (ClassNotFoundException e) {
+                System.err.println("Class not found for client " + playerId + ": " + e.getMessage());
+                e.printStackTrace();
             }
         }
+    } catch (IOException e) {
+        System.err.println("Initial connection error for client " + playerId + ": " + e.getMessage());
+        e.printStackTrace();
+    } finally {
+        // Limpieza al desconectar
+        clients.remove(this);
+        if (gameState != null) {
+            Player player = gameState.getPlayer(playerId);
+            if (player != null) {
+                gameState.getPlayers().remove(player);
+                System.out.println("Removed player " + playerId + " from game state");
+            }
+        }
+        try {
+            if (out != null) out.close();
+            if (in != null) in.close();
+            if (socket != null) socket.close();
+            System.out.println("Client " + playerId + " connection closed cleanly");
+        } catch (IOException e) {
+            System.err.println("Error closing connection for client " + playerId + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}
 
         public void sendGameState(GameStateData state) {
             try {
