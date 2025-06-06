@@ -8,7 +8,7 @@ import java.awt.image.BufferedImage;
 public class Goomba extends Enemy {
 
     private BufferedImage[] sprites;
-    public Goomba(TileMap tm) {
+    public Goomba(TileMap tm, double x, double y) {
         super(tm);
         moveSpeed = 0.3;
         maxSpeed = 0.3;
@@ -37,7 +37,8 @@ public class Goomba extends Enemy {
         animation.setDelay(300);
 
         right = true;
-
+        
+        setPosition(x, y);
 }
 
 private void getNextPosition() {

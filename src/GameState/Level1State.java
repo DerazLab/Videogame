@@ -23,6 +23,8 @@ public class Level1State extends GameState {
     private Flagpole flagpole;
     private Font countdownFont;
 
+    private Goomba goomba, goomba2, goomba3, goomba4, goomba5, goomba6;
+
     public Level1State(GameStateManager gsm) {
         this.gsm = gsm;
         localPlayerId = gsm.isHost() ? 0 : (gsm.getClient() != null ? gsm.getClient().getPlayerId() : 1);
@@ -48,10 +50,15 @@ public class Level1State extends GameState {
             addPlayer(1);
         }
 
+         //AGREGAR ENEMIGOS ---------------------------------------------
         enemies = new ArrayList<>();
-        Goomba goomba = new Goomba(tileMap);
-        goomba.setPosition(100, 100);
+        goomba = new Goomba(tileMap, 300, 100);
         enemies.add(goomba);
+
+        goomba2 = new Goomba(tileMap, 300, 200);
+        enemies.add(goomba2);
+        // -------------------------------------------------------------
+
 
         flagpole = new Flagpole(tileMap, 300, 100);
         flagpole.setPosition(300, 100);
