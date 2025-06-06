@@ -57,7 +57,7 @@ public class GameClient {
             }
             long currentTime = System.nanoTime();
             if (!input.equals(lastInput) || (currentTime - lastInputTime) / 1_000_000 >= 100) {
-                System.out.println("Sending input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
+                //System.out.println("Sending input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
                 out.writeObject(input);
                 out.flush();
                 lastInput = new NetworkData.PlayerInput();
