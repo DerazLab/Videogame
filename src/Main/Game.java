@@ -6,15 +6,14 @@ import java.awt.*;
 //java -cp bin;Resources Main.Game
 public class Game {
     public static void main(String[] args) {
-        int port = 12345; // Puerto fijo para simplicidad
-        String hostAddress = "localhost"; // Por defecto para el host
+        int port = 12345; 
+        String hostAddress = "localhost";
 
-        // Preguntar si el usuario quiere ser host o cliente
         String[] options = {"Host", "Client"};
         int choice = JOptionPane.showOptionDialog(
             null,
-            "Do you want to host or join a game?",
-            "Multiplayer Setup",
+            "¿Quieres ser el host o un cliente?",
+            "Setup Multijugador", 
             JOptionPane.DEFAULT_OPTION,
             JOptionPane.INFORMATION_MESSAGE,
             null,
@@ -24,13 +23,13 @@ public class Game {
 
         boolean isHost = (choice == 0);
         if (!isHost) {
-            hostAddress = JOptionPane.showInputDialog("Enter the host IP address:");
+            hostAddress = JOptionPane.showInputDialog("Ingresa la IP:");
             if (hostAddress == null || hostAddress.trim().isEmpty()) {
                 hostAddress = "localhost";
             }
         }
 
-        JFrame window = new JFrame("Juegazo");
+        JFrame window = new JFrame("Mario Bros Multiplayer");
         GamePanel gamePanel = new GamePanel(isHost, hostAddress, port);
         window.setContentPane(gamePanel);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
