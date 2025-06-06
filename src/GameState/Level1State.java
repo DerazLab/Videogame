@@ -56,7 +56,7 @@ public class Level1State extends GameState {
         flagpole = new Flagpole(tileMap, 300, 100);
         flagpole.setPosition(300, 100);
 
-        // Validate spawn positions and force respawn
+        // Validate spawn positions
         for (Player player : players) {
             double x = player.getx();
             double y = player.gety();
@@ -67,9 +67,9 @@ public class Level1State extends GameState {
                 player.setPosition(x, y - tileMap.getTileSize());
                 System.out.println("Player " + player.getClass().getSimpleName() + " spawn adjusted to avoid blocked tile at (" + x + ", " + y + ")");
             }
-            // Force respawn to ensure player is alive
-            player.respawn();
-            System.out.println("Player " + player.getClass().getSimpleName() + " forced respawn at (" + player.getx() + ", " + player.gety() + ") with health=" + player.getHealth());
+            // Ensure player starts alive
+            player.setHealth(player.getMaxHealth());
+            System.out.println("Player " + player.getClass().getSimpleName() + " initialized at (" + player.getx() + ", " + player.gety() + ") with health=" + player.getHealth());
         }
 
         if (gsm.isHost()) {
@@ -86,10 +86,10 @@ public class Level1State extends GameState {
         Player newPlayer = new Player(tileMap, playerId);
         double xPos = 50 + (players.size() * 20);
         newPlayer.setPosition(xPos, 100);
-        newPlayer.respawn(); // Force respawn to ensure full health and alive state
+        newPlayer.setHealth(newPlayer.getMaxHealth()); // Ensure full health
         players.add(newPlayer);
         playerInputs.put(players.size() - 1, new NetworkData.PlayerInput());
-        System.out.println("Added player " + playerId + " at position (" + xPos + ", 100) with health=" + newPlayer.getHealth());
+        System.out.println("Added player " + playerId + " at position (" + xPos + ", 100)");
     }
 
     public Player getPlayer(int index) {
@@ -139,8 +139,7 @@ public class Level1State extends GameState {
             }
             player.setHealth(data.health);
             if (data.health > 0 && player.isDead()) {
-                player.respawn(); // Force respawn if server indicates player is alive
-                System.out.println("Player " + i + " respawned via network update at (" + data.x + ", " + data.y + ")");
+                player.setHealth(data.health); // Ensure player is revived if server says so
             }
             player.setScore(data.score);
             player.setFacingRight(data.facingRight);
