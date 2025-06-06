@@ -39,22 +39,22 @@ public class Goomba extends Enemy {
         right = true;
         
         setPosition(x, y);
-}
+    }
 
-private void getNextPosition() {
+    private void getNextPosition() {
         // movement
         if(left) {
-			dx -= moveSpeed;
-			if(dx < -maxSpeed) {
-				dx = -maxSpeed;
-			}
-		}
-		else if(right) {
-			dx += moveSpeed;
-			if(dx > maxSpeed) {
-				dx = maxSpeed;
-			}
-		}
+            dx -= moveSpeed;
+            if(dx < -maxSpeed) {
+                dx = -maxSpeed;
+            }
+        }
+        else if(right) {
+            dx += moveSpeed;
+            if(dx > maxSpeed) {
+                dx = maxSpeed;
+            }
+        }
 
         if(falling) {
             dy += fallSpeed;
@@ -74,20 +74,17 @@ private void getNextPosition() {
         if(right && dx == 0) {
             right = false;
             left = true;
-			facingRight = false;
+            facingRight = false;
         } else if(left && dx == 0) {
             right = true;
             left = false;
-			facingRight =  true;
+            facingRight = true;
         }
         animation.update();
     }
 
     public void draw(java.awt.Graphics2D g) {
-        if(notOnScreen()) { return; }
-
         setMapPosition();
-
         super.draw(g);
     }
 }
