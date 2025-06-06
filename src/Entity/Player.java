@@ -18,7 +18,7 @@ public class Player extends MapObject {
     private int scratchRange;
     private boolean gliding;
     private ArrayList<BufferedImage[]> sprites;
-    private final int[] numFrames = {1, 3, 1, 1, 1}; // IDLE, WALKING, JUMPING/FALLING, DEAD, HOLDING_FLAG
+    private final int[] numFrames = {1, 3, 1, 1, 1, 1}; // IDLE, WALKING, JUMPING/FALLING, DEAD, HOLDING_FLAG
     private boolean holdingFlag;
     private boolean deathJump;
     private long deathJumpTimer;
@@ -36,7 +36,7 @@ public class Player extends MapObject {
     private static final int JUMPING = 2;
     private static final int FALLING = 2;
     private static final int DEAD = 3;
-    private static final int HOLDING_FLAG = 4;
+    private static final int HOLDING_FLAG = 5;
 
     public Player(TileMap tm, int playerId) {
         super(tm);
@@ -134,7 +134,7 @@ public class Player extends MapObject {
             deathJump = false;
             awaitingRespawn = false;
             currentAction = HOLDING_FLAG;
-            animation.setFrames(sprites.get(IDLE));
+            animation.setFrames(sprites.get(HOLDING_FLAG));
             animation.setDelay(-1);
         }
     }
