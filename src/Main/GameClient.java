@@ -139,19 +139,25 @@ public class GameClient {
     }
 
     public void disconnect() {
-        if (!connected) return;
-        connected = false;
-        try {
-            if (out != null) out.close();
-            if (in != null) in.close();
-            if (socket != null) socket.close();
-            System.out.println("Client " + playerId + " disconnected cleanly");
-        } catch (IOException e) {
-            System.err.println("Error closing client connection for player " + playerId + ": " + e.getMessage());
-            e.printStackTrace();
-        }
-        gamePanel.getGameStateManager().setState(GameStateManager.INMENU);
-    }
+		if (!connected) return;
+		connected = false;
+		try {
+			if (out != null) out.close();
+			if (in != null) in.close();
+			if (socket != null) socket.close();
+			System.out.println("Client " + playerId + " disconnected cleanly");
+		} catch (IOException e) {
+			System.err.println("Error closing client connection for player " + playerId + ": " + e.getMessage());
+			e.printStackTrace();
+		}
+		GameStateManager gsm = gamePanel.getGameStateManager();
+		if (gsm != null) {
+			gsm.setState(GameStateManager.INMENU);
+		} else {
+			System.out.println("GSM is null, cannot set state to INMENU");
+        // Opcionalmente, podrías agregar código para mostrar un mensaje de error al usuario
+		}
+	}
 
     public GameStateManager getGameStateManager() {
         return gamePanel.getGameStateManager();
