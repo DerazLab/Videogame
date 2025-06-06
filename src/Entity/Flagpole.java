@@ -26,9 +26,7 @@ public class Flagpole extends MapObject {
     }
 
     @Override
-    public void draw(java.awt.Graphics2D g) {
-        // Drawing handled by TileMap, so no need to implement
-    }
+    public void draw(java.awt.Graphics2D g) { }
 
     public Rectangle getRectangle() {
         return new Rectangle(

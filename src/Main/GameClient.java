@@ -78,7 +78,6 @@ public class GameClient {
             while (connected) {
                 try {
                     Object obj = in.readObject();
-                    System.out.println("Objeto recibido: " + obj.getClass().getSimpleName());
                     if (obj instanceof String) {
                         if (obj.equals("START_GAME")) {
                             System.out.println("Juego iniciado");

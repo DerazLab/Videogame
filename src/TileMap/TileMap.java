@@ -133,7 +133,6 @@ public class TileMap {
 
     public int getType(int row, int col) {
         if (row < 0 || row >= numRows || col < 0 || col >= numCols) {
-            return Tile.NORMAL; // Default to NORMAL to avoid out-of-bounds issues
         }
         int rc = map[row][col];
         int r = rc / numTilesAcross;

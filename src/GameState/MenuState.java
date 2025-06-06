@@ -8,7 +8,7 @@ import java.awt.event.KeyEvent;
 public class MenuState extends GameState {
     private Background bg;
     private int currentChoice = 0;
-    private String[] options = {"Start", "Quit"};
+    private String[] options = {"Jugar", "Cerrar"};
     private Color titleColor;
     private Font titleFont;
     private Font font;
@@ -68,7 +68,7 @@ public class MenuState extends GameState {
             g.drawString(options[i], 145, 140 + i * 15);
         }
         g.setColor(Color.WHITE);
-        g.drawString("Players Connected: " + connectedPlayers, 20, 180);
+        g.drawString("Jugadores conectados: " + connectedPlayers, 20, 180);
     }
 
     private void select() {
