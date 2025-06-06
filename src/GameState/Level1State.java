@@ -302,7 +302,7 @@ public class Level1State extends GameState {
                 if (secondsLeft >= 0) {
                     g.setFont(countdownFont);
                     g.setColor(Color.WHITE);
-                    g.drawString("Respawn in: " + secondsLeft, (int)(player.getx() + tileMap.getX()), (int)(player.gety() + tileMap.getY() - 20));
+                    g.drawString("Reapareciendo en: " + secondsLeft, (int)(player.getx() + tileMap.getX()), (int)(player.gety() + tileMap.getY() - 20));
                 }
             }
         }

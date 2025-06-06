@@ -40,11 +40,9 @@ public class GameStateManager {
 
     public void setState(int state) {
         if (state == INMENU && currentState != INMENU) {
-            // Reset player states when transitioning to menu
             Level1State level1State = (Level1State) gameStates.get(INLEVEL);
             for (Player player : level1State.getPlayers()) {
                 player.respawn();
-                System.out.println("Player " + player.getClass().getSimpleName() + " respawned on menu transition at (" + player.getx() + ", " + player.gety() + ")");
             }
         }
         this.currentState = state;
