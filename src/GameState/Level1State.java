@@ -55,8 +55,11 @@ public class Level1State extends GameState {
         goomba = new Goomba(tileMap, 300, 100);
         enemies.add(goomba);
 
-        goomba2 = new Goomba(tileMap, 300, 200);
+        goomba2 = new Goomba(tileMap, 310, 200);
         enemies.add(goomba2);
+
+        goomba2 = new Goomba(tileMap, 320, 200);
+        enemies.add(goomba3);
         // -------------------------------------------------------------
 
 
