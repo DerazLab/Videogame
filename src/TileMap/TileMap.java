@@ -67,7 +67,7 @@ public class TileMap {
                 // Flagpole tiles (assuming third row in tileset)
                 if (col == 10 || col == 12 || col == 13) {
                     subimage = tileset.getSubimage(col * tileSize, 0, tileSize, tileSize);
-                    tiles[2][col] = new Tile(subimage, Tile.FLAGPOLE);
+                    tiles[0][col] = new Tile(subimage, Tile.FLAGPOLE);
                 }
             }
         } catch (Exception e) {
