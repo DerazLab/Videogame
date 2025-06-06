@@ -23,17 +23,15 @@ public class GameClient {
         lastInputTime = System.nanoTime();
         try {
             socket = new Socket();
-            socket.setSoTimeout(10000); // 5-second timeout
+            socket.setSoTimeout(10000);
             socket.connect(new InetSocketAddress(host, port), 10000);
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream(socket.getInputStream());
             connected = true;
 
-            // Receive player ID
             playerId = (Integer) in.readObject();
             System.out.println("Connected to server with player ID: " + playerId);
 
-            // Start thread to receive updates from server
             new Thread(this::receiveGameState).start();
         } catch (IOException | ClassNotFoundException e) {
             System.err.println("Failed to connect to server: " + e.getMessage());
@@ -52,15 +50,14 @@ public class GameClient {
 
     public void sendInput(NetworkData.PlayerInput input) {
         try {
-            // Apply input locally for immediate response
             GameStateManager gsm = gamePanel.getGameStateManager();
             if (gsm.getGameStates().get(GameStateManager.INLEVEL) instanceof Level1State) {
                 Level1State level = (Level1State) gsm.getGameStates().get(GameStateManager.INLEVEL);
                 level.updatePlayerInput(playerId, input);
             }
-            // Send input only if changed and at least 50ms have passed
             long currentTime = System.nanoTime();
-            if (!input.equals(lastInput) && (currentTime - lastInputTime) / 1000000 >= 50) {
+            // Send input every frame (~33ms for 30 FPS) if changed or every 100ms to keep sync
+            if (!input.equals(lastInput) || (currentTime - lastInputTime) / 1000000 >= 100) {
                 System.out.println("Sending input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
                 out.writeObject(input);
                 out.flush();

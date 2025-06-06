@@ -16,10 +16,12 @@ public class GameServer {
     private Level1State gameState;
     private int port;
     private List<Integer> playerIds = new ArrayList<>();
+    private long lastBroadcastTime;
 
     public GameServer(int port, MenuState menuState) {
         this.port = port;
         this.menuState = menuState;
+        this.lastBroadcastTime = System.nanoTime();
     }
 
     public void setGameState(Level1State gameState) {
@@ -65,7 +67,7 @@ public class GameServer {
         }
     }
 	
-	public void notifyStateChange(int newState) {
+    public void notifyStateChange(int newState) {
         try {
             StateChange stateChange = new StateChange(newState);
             for (ClientHandler client : clients) {
@@ -79,8 +81,13 @@ public class GameServer {
     }
 
     public void broadcastGameState() {
+        long currentTime = System.nanoTime();
+        if ((currentTime - lastBroadcastTime) / 1000000 < 33) { // Limitar a 30 FPS
+            return;
+        }
+        lastBroadcastTime = currentTime;
+
         if (gameState == null) {
-            // Enviar un mensaje "KEEP_ALIVE" si no hay estado del juego
             for (ClientHandler client : clients) {
                 client.sendKeepAlive();
             }
@@ -107,7 +114,6 @@ public class GameServer {
             for (Enemy enemy : gameState.getEnemies()) {
                 state.enemies.add(new EnemyData(enemy.getx(), enemy.gety(), enemy.getHealth(), enemy.isDead()));
             }
-            //System.out.println("Broadcasting game state: players=" + state.players.size() + ", enemies=" + state.enemies.size());
             for (ClientHandler client : clients) {
                 client.sendGameState(state);
             }
@@ -127,7 +133,7 @@ public class GameServer {
             this.socket = socket;
             this.playerId = playerId;
             try {
-                socket.setSoTimeout(10000); // 5-second timeout
+                socket.setSoTimeout(10000);
                 out = new ObjectOutputStream(socket.getOutputStream());
                 in = new ObjectInputStream(socket.getInputStream());
             } catch (IOException e) {
@@ -136,7 +142,7 @@ public class GameServer {
             }
         }
 		
-		public void sendStateChange(StateChange stateChange) {
+        public void sendStateChange(StateChange stateChange) {
             try {
                 out.writeObject(stateChange);
                 out.flush();
@@ -167,8 +173,7 @@ public class GameServer {
                         }
                     } catch (SocketTimeoutException e) {
                         System.out.println("Socket timeout for client " + playerId + ": " + e.getMessage());
-                        // Opcionalmente, mantener al cliente conectado o tomar otra acción
-                        continue; // Mantener el bucle en ejecución
+                        continue;
                     } catch (EOFException e) {
                         System.out.println("Client " + playerId + " disconnected: EOF reached");
                         break;
@@ -209,7 +214,6 @@ public class GameServer {
             try {
                 out.writeObject(state);
                 out.flush();
-                //System.out.println("Sent game state to client " + playerId);
             } catch (IOException e) {
                 System.err.println("Error sending game state to client " + playerId + ": " + e.getMessage());
                 e.printStackTrace();
