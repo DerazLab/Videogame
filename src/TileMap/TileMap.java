@@ -132,16 +132,20 @@ public class TileMap {
     }
 
     public int getType(int row, int col) {
-        if (row < 0 || row >= numRows || col < 0 || col >= numCols) {
-        }
-        int rc = map[row][col];
-        int r = rc / numTilesAcross;
-        int c = rc % numTilesAcross;
-        if (c == 10 || c == 12 || c == 13) {
-            return Tile.FLAGPOLE;
-        }
-        return tiles[r][c].getType();
+    if (row < 0 || row >= numRows || col < 0 || col >= numCols) {
+        return Tile.BLOCKED; // Trata las posiciones fuera de límites como bloqueadas
     }
+	//System.out.println("Row: " + row + "MaxRows: " + numRows);
+	//System.out.println("Col: " + col + "MaxCols: " + numCols);
+	
+    int rc = map[row][col];
+    int r = rc / numTilesAcross;
+    int c = rc % numTilesAcross;
+    if (c == 10 || c == 12 || c == 13) {
+        return Tile.FLAGPOLE;
+    }
+    return tiles[r][c].getType();
+}
 
     public void setPosition(double x, double y) {
         this.x += (x - this.x) * tween;
