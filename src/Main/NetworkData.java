@@ -16,8 +16,10 @@ public class NetworkData {
         public boolean facingRight;
         public boolean dead;
         public boolean holdingFlag;
+        public boolean awaitingRespawn;
+        public long respawnTimer;
 
-        public PlayerData(double x, double y, int health, int score, boolean facingRight, boolean dead, boolean holdingFlag) {
+        public PlayerData(double x, double y, int health, int score, boolean facingRight, boolean dead, boolean holdingFlag, boolean awaitingRespawn, long respawnTimer) {
             this.x = x;
             this.y = y;
             this.health = health;
@@ -25,6 +27,8 @@ public class NetworkData {
             this.facingRight = facingRight;
             this.dead = dead;
             this.holdingFlag = holdingFlag;
+            this.awaitingRespawn = awaitingRespawn;
+            this.respawnTimer = respawnTimer;
         }
     }
 
@@ -61,8 +65,8 @@ public class NetworkData {
             return Objects.hash(left, right, up, down, jumping);
         }
     }
-	
-	public static class StateChange implements Serializable {
+
+    public static class StateChange implements Serializable {
         public int newState;
 
         public StateChange(int newState) {

@@ -66,7 +66,7 @@ public class GameServer {
             e.printStackTrace();
         }
     }
-	
+
     public void notifyStateChange(int newState) {
         try {
             StateChange stateChange = new StateChange(newState);
@@ -82,7 +82,7 @@ public class GameServer {
 
     public void broadcastGameState() {
         long currentTime = System.nanoTime();
-        if ((currentTime - lastBroadcastTime) / 1000000 < 33) { // Limitar a 30 FPS
+        if ((currentTime - lastBroadcastTime) / 1_000_000 < 33) {
             return;
         }
         lastBroadcastTime = currentTime;
@@ -107,7 +107,9 @@ public class GameServer {
                         player.getScore(), 
                         player.isFacingRight(), 
                         player.isDead(),
-                        player.isHoldingFlag()
+                        player.isHoldingFlag(),
+                        player.isAwaitingRespawn(),
+                        player.getRespawnTimer()
                     ));
                 }
             }
@@ -141,7 +143,7 @@ public class GameServer {
                 e.printStackTrace();
             }
         }
-		
+
         public void sendStateChange(StateChange stateChange) {
             try {
                 out.writeObject(stateChange);

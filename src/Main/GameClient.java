@@ -56,8 +56,7 @@ public class GameClient {
                 level.updatePlayerInput(playerId, input);
             }
             long currentTime = System.nanoTime();
-            // Send input every frame (~33ms for 30 FPS) if changed or every 100ms to keep sync
-            if (!input.equals(lastInput) || (currentTime - lastInputTime) / 1000000 >= 100) {
+            if (!input.equals(lastInput) || (currentTime - lastInputTime) / 1_000_000 >= 100) {
                 System.out.println("Sending input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
                 out.writeObject(input);
                 out.flush();
@@ -95,6 +94,20 @@ public class GameClient {
                         GameStateData state = (GameStateData) obj;
                         System.out.println("Received GameStateData for player " + playerId + ": players=" + state.players.size() + ", enemies=" + state.enemies.size());
                         Level1State level = (Level1State) gamePanel.getGameStateManager().getGameStates().get(GameStateManager.INLEVEL);
+                        for (int i = 0; i < state.players.size() && i < level.getPlayers().size(); i++) {
+                            Player player = level.getPlayer(i);
+                            PlayerData data = state.players.get(i);
+                            if (i != playerId || data.dead || data.holdingFlag) {
+                                player.setPosition(data.x, data.y);
+                            }
+                            player.setHealth(data.health);
+                            player.setScore(data.score);
+                            player.setFacingRight(data.facingRight);
+                            player.setHoldingFlag(data.holdingFlag);
+                            if (data.awaitingRespawn) {
+                                player.setHealth(0); // Ensure dead state
+                            }
+                        }
                         level.updateGameState(state);
                     } else if (obj instanceof StateChange) {
                         StateChange stateChange = (StateChange) obj;

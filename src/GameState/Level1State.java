@@ -21,12 +21,14 @@ public class Level1State extends GameState {
     private Map<Integer, NetworkData.PlayerInput> playerInputs;
     private Map<Integer, Long> lastInputTimes;
     private Flagpole flagpole;
+    private Font countdownFont;
 
     public Level1State(GameStateManager gsm) {
         this.gsm = gsm;
         localPlayerId = gsm.isHost() ? 0 : (gsm.getClient() != null ? gsm.getClient().getPlayerId() : 1);
         playerInputs = new HashMap<>();
         lastInputTimes = new HashMap<>();
+        countdownFont = new Font("Arial", Font.PLAIN, 12);
         init();
     }
 
@@ -51,8 +53,7 @@ public class Level1State extends GameState {
         goomba.setPosition(100, 100);
         enemies.add(goomba);
 
-        // Initialize flagpole (adjust coordinates based on your map)
-        flagpole = new Flagpole(tileMap, 300, 100); // Example position, adjust to match flagpole tiles
+        flagpole = new Flagpole(tileMap, 300, 100);
         flagpole.setPosition(300, 100);
 
         if (gsm.isHost()) {
@@ -153,12 +154,20 @@ public class Level1State extends GameState {
     }
 
     public void update() {
+        boolean allDead = true;
         for (Player player : players) {
             if (!player.isDead()) {
-                player.update();
-            } else {
-                player.update();
+                allDead = false;
             }
+            player.update();
+        }
+
+        if (gsm.isHost() && allDead) {
+            gsm.setState(GameStateManager.GAMEOVER);
+            if (server != null) {
+                server.notifyStateChange(GameStateManager.GAMEOVER);
+            }
+            return;
         }
 
         Iterator<Enemy> enemyIterator = enemies.iterator();
@@ -189,30 +198,40 @@ public class Level1State extends GameState {
             }
         }
 
-        // Check for level completion
         if (gsm.isHost() && flagpole.isActive()) {
-			boolean allHolding = true;
-			for (Player player : players) {
-				if (!player.isDead() && !player.isHoldingFlag()) {
-					allHolding = false;
-					break;
-				}
-			}
-			if (allHolding && players.size() > 1) {
-				flagpole.setActive(false);
-				gsm.setState(GameStateManager.INMENU); // Cambia el estado del host
-				if (server != null) {
-					server.notifyStateChange(GameStateManager.INMENU); // Notifica a los clientes
-				}
-			}
-		}
+            boolean allHolding = true;
+            for (Player player : players) {
+                if (!player.isDead() && !player.isHoldingFlag()) {
+                    allHolding = false;
+                    break;
+                }
+            }
+            if (allHolding && players.size() > 1) {
+                flagpole.setActive(false);
+                gsm.setState(GameStateManager.INMENU);
+                if (server != null) {
+                    server.notifyStateChange(GameStateManager.INMENU);
+                }
+            }
+        }
 
         Player localPlayer = getPlayer(localPlayerId);
-        if (localPlayer != null) {
+        if (localPlayer != null && !localPlayer.isDead()) {
             tileMap.setPosition(
                 GamePanel.WIDTH / 2 - localPlayer.getx(),
                 GamePanel.HEIGHT / 2 - localPlayer.gety()
             );
+        } else {
+            // Center on first alive player or default position
+            for (Player player : players) {
+                if (!player.isDead()) {
+                    tileMap.setPosition(
+                        GamePanel.WIDTH / 2 - player.getx(),
+                        GamePanel.HEIGHT / 2 - player.gety()
+                    );
+                    break;
+                }
+            }
         }
 
         if (server != null) {
@@ -225,6 +244,15 @@ public class Level1State extends GameState {
         tileMap.draw(g);
         for (Player player : players) {
             player.draw(g);
+            if (player.isAwaitingRespawn()) {
+                long elapsed = (System.nanoTime() - player.getRespawnTimer()) / 1_000_000;
+                int secondsLeft = (int) ((10_000 - elapsed) / 1000);
+                if (secondsLeft >= 0) {
+                    g.setFont(countdownFont);
+                    g.setColor(Color.WHITE);
+                    g.drawString("Respawn in: " + secondsLeft, (int)(player.getx() + tileMap.getX()), (int)(player.gety() + tileMap.getY() - 20));
+                }
+            }
         }
         for (Enemy enemy : enemies) {
             enemy.draw(g);
