@@ -11,7 +11,7 @@ public class Flagpole extends MapObject {
         this.x = x;
         this.y = y;
         width = 16;
-        height = 48; // Assuming flagpole spans multiple tiles vertically
+        height = 48; 
         cwidth = 8;
         cheight = 48;
         active = true;

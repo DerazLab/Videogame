@@ -42,7 +42,6 @@ public class Goomba extends Enemy {
     }
 
     private void getNextPosition() {
-        // movement
         if(left) {
             dx -= moveSpeed;
             if(dx < -maxSpeed) {
@@ -65,12 +64,10 @@ public class Goomba extends Enemy {
     }
 
     public void update() {
-        // update position
         getNextPosition();
         checkTileMapCollision();
         setPosition(xtemp, ytemp);
 
-        // update animation
         if(right && dx == 0) {
             right = false;
             left = true;

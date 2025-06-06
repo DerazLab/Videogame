@@ -6,29 +6,22 @@ import java.awt.Rectangle;
 
 public abstract class MapObject
 {
-    // tiles
     protected TileMap tileMap;    
     protected int tileSize;
     protected double xmap;
     protected double ymap;
-
-    // Posicion y vector
 
     protected double x;
     protected double y;
     protected double dx;
     protected double dy;
 
-    // dimensiones
-
     protected int width;
     protected int height;
 
-    // collision box
     protected int cwidth;
     protected int cheight;
 
-    // collision
     protected int currRow;
     protected int currCol;
     protected double xdest;
@@ -40,13 +33,11 @@ public abstract class MapObject
     protected boolean bottomLeft;
     protected boolean bottomRight;
 
-    // Animaciones
     protected Animation animation;
     protected int currentAction;
     protected int previousAction;
     protected boolean facingRight;
 
-    // Movement
     protected boolean left;
     protected boolean right;
     protected boolean up;
@@ -54,7 +45,6 @@ public abstract class MapObject
     protected boolean jumping;
     protected boolean falling;
 
-    // Movement attributes
     protected double moveSpeed;
     protected double maxSpeed;
     protected double stopSpeed;
@@ -63,7 +53,6 @@ public abstract class MapObject
     protected double jumpStart;
     protected double stopJumpSpeed;
 
-    // constructor
     public MapObject(TileMap tm)
     {
         tileMap = tm;
@@ -103,7 +92,6 @@ public abstract class MapObject
     bottomRight = br == Tile.BLOCKED;
 }
 
-    //Verificar si nos hemos tomado con un NormalTile o un BlockTile
     public void checkTileMapCollision() {
     currCol = (int)x / tileSize;
     currRow = (int)y / tileSize;
@@ -119,7 +107,6 @@ public abstract class MapObject
         if (topLeft || topRight) {
             dy = 0;
             ytemp = currRow * tileSize + cheight / 2;
-            //System.out.println("Collision: Top hit at y=" + ytemp);
         } else {
             ytemp += dy;
         }
@@ -129,7 +116,6 @@ public abstract class MapObject
             dy = 0;
             falling = false;
             ytemp = (currRow + 1) * tileSize - cheight / 2;
-            //System.out.println("Collision: Bottom hit at y=" + ytemp);
         } else {
             ytemp += dy;
         }
@@ -140,7 +126,6 @@ public abstract class MapObject
         if (topLeft || bottomLeft) {
             xtemp = currCol * tileSize + cwidth / 2 + 0.1;
             dx = 0;
-            //System.out.println("Collision: Left hit at x=" + xtemp);
         } else {
             xtemp += dx;
         }
@@ -149,7 +134,6 @@ public abstract class MapObject
         if (topRight || bottomRight) {
             xtemp = (currCol + 1) * tileSize - cwidth / 2 - 0.1;
             dx = 0;
-            //System.out.println("Collision: Right hit at x=" + xtemp);
         } else {
             xtemp += dx;
         }
@@ -159,11 +143,9 @@ public abstract class MapObject
         calculateCorners(x, ydest + 1);
         if (!bottomLeft && !bottomRight) {
             falling = true;
-            //System.out.println("Falling: No ground detected");
         }
     }
 }
-
 
     public int getx() {return (int)x;}
     

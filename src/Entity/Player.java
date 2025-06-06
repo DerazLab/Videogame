@@ -14,28 +14,24 @@ public class Player extends MapObject {
     private boolean dead;
     private boolean flinching;
     private long flinchTimer;
-    private boolean scratching;
-    private int scratchDamage;
-    private int scratchRange;
-    private boolean gliding;
     private ArrayList<BufferedImage[]> sprites;
-    private final int[] numFrames = {1, 3, 1, 1, 1, 1}; // IDLE, WALKING, JUMPING/FALLING, DEAD, HOLDING_FLAG, FLAG_DESCENT
+    private final int[] numFrames = {1, 3, 1, 1, 1, 1}; 
     private boolean holdingFlag;
     private boolean descendingFlag;
     private boolean descentComplete;
     private long descentStartTime;
     private double flagpoleX;
     private double groundY;
-    private static final double DESCENT_SPEED = 1.0; // Pixels per frame
+    private static final double DESCENT_SPEED = 1.0; 
     private boolean deathJump;
     private long deathJumpTimer;
     private long respawnTimer;
     private boolean awaitingRespawn;
     private boolean deathAnimationComplete;
-    private static final long DEATH_JUMP_DURATION = 500_000_000; // 0.5 seconds
-    private static final long DEATH_FALL_DURATION = 1_500_000_000; // 1.5 seconds
-    private static final double DEATH_JUMP_SPEED = -3.0; // Upward speed for death jump
-    private static final long RESPAWN_DURATION = 10_000_000_000L; // 10 seconds
+    private static final long DEATH_JUMP_DURATION = 500_000_000;
+    private static final long DEATH_FALL_DURATION = 1_500_000_000; 
+    private static final double DEATH_JUMP_SPEED = -3.0;
+    private static final long RESPAWN_DURATION = 10_000_000_000L; 
     private double spawnX, spawnY;
 
     private int playerId;
@@ -102,7 +98,6 @@ public class Player extends MapObject {
         animation.setDelay(400);
     }
 
-    // Method to play sound effects
     private void playSound(String soundFile) {
         try {
             String soundPath = "/Resources/Sounds/" + soundFile;
@@ -113,12 +108,10 @@ public class Player extends MapObject {
             clip.open(audioInputStream);
             clip.start();
         } catch (Exception e) {
-            System.err.println("Error playing sound " + soundFile + ": " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    // Public method to play jump sound
     public void playJumpSound() {
         playSound("MarioJumps.wav");
     }
