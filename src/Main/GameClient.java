@@ -24,7 +24,7 @@ public class GameClient {
         try {
             socket = new Socket();
             socket.setSoTimeout(10000); // 5-second timeout
-            socket.connect(new InetSocketAddress(host, port), 5000);
+            socket.connect(new InetSocketAddress(host, port), 10000);
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream(socket.getInputStream());
             connected = true;
