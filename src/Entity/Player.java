@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import javax.sound.sampled.*;
 
 public class Player extends MapObject {
     private int health;
@@ -35,7 +36,6 @@ public class Player extends MapObject {
     private static final long DEATH_FALL_DURATION = 1_500_000_000; // 1.5 seconds
     private static final double DEATH_JUMP_SPEED = -3.0; // Upward speed for death jump
     private static final long RESPAWN_DURATION = 10_000_000_000L; // 10 seconds
-    private static final long SPAWN_INVINCIBILITY = 2_000_000_000L; // 2 seconds
     private double spawnX, spawnY;
 
     private int playerId;
@@ -73,17 +73,6 @@ public class Player extends MapObject {
         spawnX = 50 + (playerId * 20);
         spawnY = 100;
 
-        // Reset respawn-related fields
-        dead = false;
-        awaitingRespawn = false;
-        deathAnimationComplete = false;
-        respawnTimer = 0;
-
-        // Initialize spawn invincibility
-        flinching = true;
-        flinchTimer = System.nanoTime();
-        System.out.println("Player " + playerId + " initialized with spawn invincibility for 2 seconds");
-
         try {
             String spritePath = playerId == 0 ? 
                 "/Resources/Sprites/Player/MarioSprites.png" : 
@@ -111,6 +100,27 @@ public class Player extends MapObject {
         }
         animation.setFrames(sprites.get(IDLE));
         animation.setDelay(400);
+    }
+
+    // Method to play sound effects
+    private void playSound(String soundFile) {
+        try {
+            String soundPath = "/Resources/Sounds/" + soundFile;
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(
+                getClass().getResourceAsStream(soundPath)
+            );
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } catch (Exception e) {
+            System.err.println("Error playing sound " + soundFile + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // Public method to play jump sound
+    public void playJumpSound() {
+        playSound("MarioJumps.wav");
     }
 
     public int getHealth() { return health; }
@@ -142,7 +152,7 @@ public class Player extends MapObject {
             currentAction = DEAD;
             animation.setFrames(sprites.get(DEAD));
             animation.setDelay(-1);
-            System.out.println("Player " + playerId + " died, health set to 0");
+            playSound("MarioDies.wav");
         }
     }
 
@@ -187,10 +197,6 @@ public class Player extends MapObject {
         currentAction = WALKING;
         animation.setFrames(sprites.get(WALKING));
         animation.setDelay(40);
-        // Add spawn invincibility on respawn
-        flinching = true;
-        flinchTimer = System.nanoTime();
-        System.out.println("Player " + playerId + " respawned at (" + spawnX + ", " + spawnY + ") with invincibility for 2 seconds");
         new Thread(() -> {
             try {
                 Thread.sleep(500);
@@ -206,10 +212,7 @@ public class Player extends MapObject {
     }
 
     public void hit(int damage) {
-        if (dead || flinching || holdingFlag || descendingFlag) {
-            System.out.println("Player " + playerId + " avoided hit: dead=" + dead + ", flinching=" + flinching + ", holdingFlag=" + holdingFlag + ", descendingFlag=" + descendingFlag);
-            return;
-        }
+        if (dead || flinching || holdingFlag || descendingFlag) return;
         health -= damage;
         if (health < 0) health = 0;
         if (health == 0) {
@@ -217,7 +220,7 @@ public class Player extends MapObject {
         } else {
             flinching = true;
             flinchTimer = System.nanoTime();
-            System.out.println("Player " + playerId + " hit, health=" + health);
+            playSound("MarioDamage.wav");
         }
     }
 
@@ -226,8 +229,11 @@ public class Player extends MapObject {
     public void setDy(double dy) {
         if (dead || holdingFlag || descendingFlag) return;
         this.dy = dy;
-        if (dy < 0) jumping = true;
-        else if (dy > 0) falling = true;
+        if (dy < 0) {
+            jumping = true;
+        } else if (dy > 0) {
+            falling = true;
+        }
     }
 
     private void getNextPosition() {
@@ -356,9 +362,8 @@ public class Player extends MapObject {
 
         if (flinching) {
             long elapsed = (System.nanoTime() - flinchTimer) / 1_000_000;
-            if (elapsed > (SPAWN_INVINCIBILITY / 1_000_000)) {
+            if (elapsed > 1000) {
                 flinching = false;
-                System.out.println("Player " + playerId + " spawn invincibility ended");
             }
         }
 

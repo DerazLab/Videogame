@@ -50,27 +50,11 @@ public class Level1State extends GameState {
 
         enemies = new ArrayList<>();
         Goomba goomba = new Goomba(tileMap);
-        goomba.setPosition(200, 100); // Moved Goomba farther from player spawn
+        goomba.setPosition(100, 100);
         enemies.add(goomba);
 
         flagpole = new Flagpole(tileMap, 300, 100);
         flagpole.setPosition(300, 100);
-
-        // Validate spawn positions and force respawn
-        for (Player player : players) {
-            double x = player.getx();
-            double y = player.gety();
-            int col = (int)(x / tileMap.getTileSize());
-            int row = (int)(y / tileMap.getTileSize());
-            if (tileMap.getType(row, col) == Tile.BLOCKED) {
-                // Move player to a safe position
-                player.setPosition(x, y - tileMap.getTileSize());
-                System.out.println("Player " + player.getClass().getSimpleName() + " spawn adjusted to avoid blocked tile at (" + x + ", " + y + ")");
-            }
-            // Force respawn to ensure player is alive
-            player.respawn();
-            System.out.println("Player " + player.getClass().getSimpleName() + " forced respawn at (" + player.getx() + ", " + player.gety() + ") with health=" + player.getHealth());
-        }
 
         if (gsm.isHost()) {
             server = ((MenuState) gsm.getGameStates().get(GameStateManager.INMENU)).getServer();
@@ -86,10 +70,8 @@ public class Level1State extends GameState {
         Player newPlayer = new Player(tileMap, playerId);
         double xPos = 50 + (players.size() * 20);
         newPlayer.setPosition(xPos, 100);
-        newPlayer.respawn(); // Force respawn to ensure full health and alive state
         players.add(newPlayer);
         playerInputs.put(players.size() - 1, new NetworkData.PlayerInput());
-        System.out.println("Added player " + playerId + " at position (" + xPos + ", 100) with health=" + newPlayer.getHealth());
     }
 
     public Player getPlayer(int index) {
@@ -138,10 +120,6 @@ public class Level1State extends GameState {
                 player.setPosition(data.x, data.y);
             }
             player.setHealth(data.health);
-            if (data.health > 0 && player.isDead()) {
-                player.respawn(); // Force respawn if server indicates player is alive
-                System.out.println("Player " + i + " respawned via network update at (" + data.x + ", " + data.y + ")");
-            }
             player.setScore(data.score);
             player.setFacingRight(data.facingRight);
             player.setHoldingFlag(data.holdingFlag);
@@ -188,7 +166,6 @@ public class Level1State extends GameState {
             }
         }
 
-        // Verificar condición de Game Over primero
         if (gsm.isHost() && allDead && allAnimationsComplete) {
             gsm.setState(GameStateManager.GAMEOVER);
             if (server != null) {
@@ -197,7 +174,6 @@ public class Level1State extends GameState {
             return;
         }
 
-        // Verificar condición de victoria solo si no están todos muertos
         if (gsm.isHost() && !allDead) {
             boolean allDescended = true;
             for (Player player : players) {
@@ -237,7 +213,6 @@ public class Level1State extends GameState {
                     } else {
                         if (gsm.isHost()) {
                             player.hit(enemy.getDamage());
-                            System.out.println("Player " + player.getClass().getSimpleName() + " hit by enemy, health=" + player.getHealth());
                         }
                     }
                 }
@@ -318,6 +293,7 @@ public class Level1State extends GameState {
         }
         if (k == KeyEvent.VK_W) {
             input.jumping = true;
+            localPlayer.playJumpSound(); // Play jump sound locally
         }
 
         if (gsm.isHost()) {
