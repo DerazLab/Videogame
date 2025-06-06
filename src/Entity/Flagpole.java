@@ -26,7 +26,7 @@ public class Flagpole extends MapObject {
     }
 
     @Override
-    public void draw(java.awt.Graphics2D g) { }
+    public void draw(java.awt.Graphics2D g) {}
 
     public Rectangle getRectangle() {
         return new Rectangle(
