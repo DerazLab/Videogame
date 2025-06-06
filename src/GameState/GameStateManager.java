@@ -16,6 +16,7 @@ public class GameStateManager {
     public static final int INMENU = 0;
     public static final int INLEVEL = 1;
     public static final int GAMEOVER = 2;
+    public static final int WIN = 3;
 
     public GameStateManager(boolean isHost, int port) {
         this.isHost = isHost;
@@ -25,6 +26,7 @@ public class GameStateManager {
         gameStates.add(new MenuState(this));
         gameStates.add(new Level1State(this));
         gameStates.add(new GameOverState(this));
+        gameStates.add(new WinState(this));
     }
 
     public ArrayList<GameState> getGameStates() {

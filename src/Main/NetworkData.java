@@ -18,8 +18,11 @@ public class NetworkData {
         public boolean holdingFlag;
         public boolean awaitingRespawn;
         public long respawnTimer;
+        public boolean deathAnimationComplete;
+        public boolean descendingFlag;
+        public boolean descentComplete;
 
-        public PlayerData(double x, double y, int health, int score, boolean facingRight, boolean dead, boolean holdingFlag, boolean awaitingRespawn, long respawnTimer) {
+        public PlayerData(double x, double y, int health, int score, boolean facingRight, boolean dead, boolean holdingFlag, boolean awaitingRespawn, long respawnTimer, boolean deathAnimationComplete, boolean descendingFlag, boolean descentComplete) {
             this.x = x;
             this.y = y;
             this.health = health;
@@ -29,6 +32,9 @@ public class NetworkData {
             this.holdingFlag = holdingFlag;
             this.awaitingRespawn = awaitingRespawn;
             this.respawnTimer = respawnTimer;
+            this.deathAnimationComplete = deathAnimationComplete;
+            this.descendingFlag = descendingFlag;
+            this.descentComplete = descentComplete;
         }
     }
 

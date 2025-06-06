@@ -18,16 +18,24 @@ public class Player extends MapObject {
     private int scratchRange;
     private boolean gliding;
     private ArrayList<BufferedImage[]> sprites;
-    private final int[] numFrames = {1, 3, 1, 1, 1, 1}; // IDLE, WALKING, JUMPING/FALLING, DEAD, HOLDING_FLAG
+    private final int[] numFrames = {1, 3, 1, 1, 1, 1}; // IDLE, WALKING, JUMPING/FALLING, DEAD, HOLDING_FLAG, FLAG_DESCENT
     private boolean holdingFlag;
+    private boolean descendingFlag;
+    private boolean descentComplete;
+    private long descentStartTime;
+    private double flagpoleX;
+    private double groundY;
+    private static final double DESCENT_SPEED = 1.0; // Pixels per frame
     private boolean deathJump;
     private long deathJumpTimer;
     private long respawnTimer;
     private boolean awaitingRespawn;
+    private boolean deathAnimationComplete;
     private static final long DEATH_JUMP_DURATION = 500_000_000; // 0.5 seconds
+    private static final long DEATH_FALL_DURATION = 1_500_000_000; // 1.5 seconds
     private static final double DEATH_JUMP_SPEED = -3.0; // Upward speed for death jump
     private static final long RESPAWN_DURATION = 10_000_000_000L; // 10 seconds
-    private double spawnX, spawnY; // Store spawn position
+    private double spawnX, spawnY;
 
     private int playerId;
 
@@ -36,7 +44,8 @@ public class Player extends MapObject {
     private static final int JUMPING = 2;
     private static final int FALLING = 2;
     private static final int DEAD = 3;
-    private static final int HOLDING_FLAG = 5;
+    private static final int HOLDING_FLAG = 4;
+    private static final int FLAG_DESCENT = 5;
 
     public Player(TileMap tm, int playerId) {
         super(tm);
@@ -49,7 +58,7 @@ public class Player extends MapObject {
         cheight = 16;
 
         moveSpeed = 0.3;
-        maxSpeed = 1.6;
+        maxSpeed = 6;
         stopSpeed = 0.4;
         fallSpeed = 0.15;
         maxFallSpeed = 4.0;
@@ -58,9 +67,9 @@ public class Player extends MapObject {
 
         facingRight = true;
 
-        health = maxHealth = 1; // Single life
+        health = maxHealth = 1;
         score = 0;
-        spawnX = 50 + (playerId * 20); // Initial spawn position
+        spawnX = 50 + (playerId * 20);
         spawnY = 100;
 
         try {
@@ -100,13 +109,19 @@ public class Player extends MapObject {
     public boolean isHoldingFlag() { return holdingFlag; }
     public boolean isAwaitingRespawn() { return awaitingRespawn; }
     public long getRespawnTimer() { return respawnTimer; }
+    public boolean isDeathAnimationComplete() { return deathAnimationComplete; }
+    public boolean isDescendingFlag() { return descendingFlag; }
+    public boolean isDescentComplete() { return descentComplete; }
 
     public void setHealth(int health) { 
         this.health = health;
         if (health <= 0 && !dead) {
             dead = true;
             holdingFlag = false;
+            descendingFlag = false;
+            descentComplete = false;
             deathJump = true;
+            deathAnimationComplete = false;
             deathJumpTimer = System.nanoTime();
             respawnTimer = System.nanoTime();
             awaitingRespawn = true;
@@ -133,9 +148,13 @@ public class Player extends MapObject {
             down = false;
             deathJump = false;
             awaitingRespawn = false;
-            currentAction = HOLDING_FLAG;
-            animation.setFrames(sprites.get(HOLDING_FLAG));
+            deathAnimationComplete = false;
+            descendingFlag = true;
+            descentStartTime = System.nanoTime();
+            currentAction = FLAG_DESCENT;
+            animation.setFrames(sprites.get(FLAG_DESCENT));
             animation.setDelay(-1);
+            score += 1000;
         }
     }
 
@@ -143,21 +162,38 @@ public class Player extends MapObject {
         if (!awaitingRespawn) return;
         dead = false;
         awaitingRespawn = false;
+        deathAnimationComplete = false;
         health = maxHealth;
         setPosition(spawnX, spawnY);
-        dx = 0;
+        dx = 0.5;
         dy = 0;
-        currentAction = IDLE;
-        animation.setFrames(sprites.get(IDLE));
-        animation.setDelay(400);
+        left = false;
+        right = true;
+        jumping = false;
+        falling = false;
+        currentAction = WALKING;
+        animation.setFrames(sprites.get(WALKING));
+        animation.setDelay(40);
+        new Thread(() -> {
+            try {
+                Thread.sleep(500);
+                dx = 0;
+                right = false;
+                currentAction = IDLE;
+                animation.setFrames(sprites.get(IDLE));
+                animation.setDelay(400);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     public void hit(int damage) {
-        if (dead || flinching || holdingFlag) return;
+        if (dead || flinching || holdingFlag || descendingFlag) return;
         health -= damage;
         if (health < 0) health = 0;
         if (health == 0) {
-            setHealth(0); // Trigger death sequence
+            setHealth(0);
         } else {
             flinching = true;
             flinchTimer = System.nanoTime();
@@ -167,25 +203,44 @@ public class Player extends MapObject {
     public double getDy() { return dy; }
 
     public void setDy(double dy) {
-        if (dead || holdingFlag) return;
+        if (dead || holdingFlag || descendingFlag) return;
         this.dy = dy;
         if (dy < 0) jumping = true;
         else if (dy > 0) falling = true;
     }
 
     private void getNextPosition() {
-        if (dead || holdingFlag) {
-            if (deathJump) {
-                long elapsed = (System.nanoTime() - deathJumpTimer) / 1_000_000;
-                if (elapsed < DEATH_JUMP_DURATION / 1_000_000) {
-                    dy = DEATH_JUMP_SPEED;
-                } else {
-                    deathJump = false;
-                    dy = maxFallSpeed; // Fall off screen
+        if (dead || holdingFlag || descendingFlag) {
+            if (dead) {
+                if (deathJump) {
+                    long elapsed = (System.nanoTime() - deathJumpTimer) / 1_000_000;
+                    if (elapsed < DEATH_JUMP_DURATION / 1_000_000) {
+                        dy = DEATH_JUMP_SPEED;
+                    } else {
+                        deathJump = false;
+                        dy = maxFallSpeed;
+                    }
+                } else if (awaitingRespawn) {
+                    long elapsed = (System.nanoTime() - deathJumpTimer) / 1_000_000;
+                    if (elapsed >= (DEATH_JUMP_DURATION + DEATH_FALL_DURATION) / 1_000_000) {
+                        deathAnimationComplete = true;
+                    }
+                    dx = 0;
+                    dy = maxFallSpeed;
                 }
-            } else if (awaitingRespawn) {
+            } else if (descendingFlag) {
                 dx = 0;
-                dy = maxFallSpeed; // Continue falling
+                if (y < groundY) {
+                    dy = DESCENT_SPEED;
+                } else {
+                    dy = 0;
+                    y = groundY;
+                    descendingFlag = false;
+                    descentComplete = true;
+                    currentAction = IDLE;
+                    animation.setFrames(sprites.get(IDLE));
+                    animation.setDelay(400);
+                }
             }
             return;
         }
@@ -229,7 +284,7 @@ public class Player extends MapObject {
     }
 
     public void checkFlagpoleCollision() {
-        if (holdingFlag || dead) return;
+        if (holdingFlag || descendingFlag || dead) return;
 
         int currCol = (int)x / tileSize;
         int currRow = (int)y / tileSize;
@@ -237,8 +292,15 @@ public class Player extends MapObject {
         for (int row = Math.max(0, currRow - 1); row <= currRow + 1 && row < tileMap.getHeight() / tileSize; row++) {
             for (int col = Math.max(0, currCol - 1); col <= currCol + 1 && col < tileMap.getWidth() / tileSize; col++) {
                 if (tileMap.getType(row, col) == Tile.FLAGPOLE) {
+                    flagpoleX = col * tileSize + tileSize / 2;
+                    int groundRow = row;
+                    while (groundRow < tileMap.getHeight() / tileSize - 1 && 
+                           tileMap.getType(groundRow + 1, col) != Tile.BLOCKED) {
+                        groundRow++;
+                    }
+                    groundY = groundRow * tileSize;
                     setHoldingFlag(true);
-                    setPosition(col * tileSize + tileSize / 2, row * tileSize + tileSize / 2);
+                    setPosition(flagpoleX, y);
                     return;
                 }
             }
@@ -249,22 +311,26 @@ public class Player extends MapObject {
         if (dead) {
             if (awaitingRespawn) {
                 long elapsed = (System.nanoTime() - respawnTimer) / 1_000_000;
-                if (elapsed >= RESPAWN_DURATION / 1_000_000) {
+                if (elapsed >= RESPAWN_DURATION / 1_000_000 && !holdingFlag && !descendingFlag) {
                     respawn();
                 }
             }
             getNextPosition();
-            ytemp = y + dy; // Only update y position for death animation
+            ytemp = y + dy;
             setPosition(x, ytemp);
             animation.update();
             return;
         }
 
-        if (!holdingFlag) {
+        if (!holdingFlag && !descendingFlag) {
             getNextPosition();
             checkTileMapCollision();
             checkFlagpoleCollision();
             setPosition(xtemp, ytemp);
+        } else if (descendingFlag) {
+            getNextPosition();
+            ytemp = y + dy;
+            setPosition(flagpoleX, ytemp);
         }
 
         if (flinching) {
@@ -274,10 +340,17 @@ public class Player extends MapObject {
             }
         }
 
-        if (holdingFlag) {
+        if (holdingFlag && !descendingFlag) {
             if (currentAction != HOLDING_FLAG) {
                 currentAction = HOLDING_FLAG;
                 animation.setFrames(sprites.get(HOLDING_FLAG));
+                animation.setDelay(-1);
+                width = 16;
+            }
+        } else if (descendingFlag) {
+            if (currentAction != FLAG_DESCENT) {
+                currentAction = FLAG_DESCENT;
+                animation.setFrames(sprites.get(FLAG_DESCENT));
                 animation.setDelay(-1);
                 width = 16;
             }
@@ -319,13 +392,13 @@ public class Player extends MapObject {
 
     public void draw(Graphics2D bell) {
         setMapPosition();
-        if (flinching && !dead && !holdingFlag) {
+        if (flinching && !dead && !holdingFlag && !descendingFlag) {
             long elapsed = (System.nanoTime() - flinchTimer) / 1_000_000;
             if (elapsed / 100 % 2 == 0) {
                 return;
             }
         }
-        if (!dead || deathJump || awaitingRespawn) { // Draw during death animation
+        if (!dead || deathJump || (awaitingRespawn && !deathAnimationComplete)) {
             super.draw(bell);
         }
     }

@@ -42,10 +42,10 @@ public class Level1State extends GameState {
 
         players = new ArrayList<>();
         if (gsm.isHost()) {
-            addPlayer(0); // Host player (Mario)
+            addPlayer(0);
         } else {
-            addPlayer(0); // Host player (Mario)
-            addPlayer(1); // Client player (Luigi)
+            addPlayer(0);
+            addPlayer(1);
         }
 
         enemies = new ArrayList<>();
@@ -95,7 +95,7 @@ public class Level1State extends GameState {
 
     public void updatePlayerInput(int playerId, NetworkData.PlayerInput input) {
         Player player = getPlayer(playerId);
-        if (player != null && !player.isDead() && !player.isHoldingFlag()) {
+        if (player != null && !player.isDead() && !player.isHoldingFlag() && !player.isDescendingFlag()) {
             NetworkData.PlayerInput newInput = new NetworkData.PlayerInput();
             newInput.left = input.left;
             newInput.right = input.right;
@@ -116,7 +116,7 @@ public class Level1State extends GameState {
         for (int i = 0; i < state.players.size() && i < players.size(); i++) {
             NetworkData.PlayerData data = state.players.get(i);
             Player player = players.get(i);
-            if (i != localPlayerId || data.dead || data.holdingFlag) {
+            if (i != localPlayerId || data.dead || data.holdingFlag || data.descendingFlag) {
                 player.setPosition(data.x, data.y);
             }
             player.setHealth(data.health);
@@ -155,19 +155,40 @@ public class Level1State extends GameState {
 
     public void update() {
         boolean allDead = true;
+        boolean allAnimationsComplete = true;
         for (Player player : players) {
+            player.update();
             if (!player.isDead()) {
                 allDead = false;
             }
-            player.update();
+            if (!player.isDeathAnimationComplete()) {
+                allAnimationsComplete = false;
+            }
         }
 
-        if (gsm.isHost() && allDead) {
+        if (gsm.isHost() && allDead && allAnimationsComplete) {
             gsm.setState(GameStateManager.GAMEOVER);
             if (server != null) {
                 server.notifyStateChange(GameStateManager.GAMEOVER);
             }
             return;
+        }
+
+        if (gsm.isHost()) {
+            boolean allDescended = true;
+            for (Player player : players) {
+                if (!player.isDead() && !player.isDescentComplete()) {
+                    allDescended = false;
+                    break;
+                }
+            }
+            if (allDescended && players.size() >= 1) {
+                gsm.setState(GameStateManager.WIN);
+                if (server != null) {
+                    server.notifyStateChange(GameStateManager.WIN);
+                }
+                return;
+            }
         }
 
         Iterator<Enemy> enemyIterator = enemies.iterator();
@@ -179,7 +200,7 @@ public class Level1State extends GameState {
                 continue;
             }
             for (Player player : players) {
-                if (!player.isDead() && !player.isHoldingFlag() && player.intersects(enemy)) {
+                if (!player.isDead() && !player.isHoldingFlag() && !player.isDescendingFlag() && player.intersects(enemy)) {
                     if (player.getDy() > 0 && player.gety() < enemy.gety()) {
                         if (gsm.isHost()) {
                             player.setDy(-5);
@@ -198,23 +219,6 @@ public class Level1State extends GameState {
             }
         }
 
-        if (gsm.isHost() && flagpole.isActive()) {
-            boolean allHolding = true;
-            for (Player player : players) {
-                if (!player.isDead() && !player.isHoldingFlag()) {
-                    allHolding = false;
-                    break;
-                }
-            }
-            if (allHolding && players.size() > 1) {
-                flagpole.setActive(false);
-                gsm.setState(GameStateManager.INMENU);
-                if (server != null) {
-                    server.notifyStateChange(GameStateManager.INMENU);
-                }
-            }
-        }
-
         Player localPlayer = getPlayer(localPlayerId);
         if (localPlayer != null && !localPlayer.isDead()) {
             tileMap.setPosition(
@@ -222,15 +226,19 @@ public class Level1State extends GameState {
                 GamePanel.HEIGHT / 2 - localPlayer.gety()
             );
         } else {
-            // Center on first alive player or default position
+            boolean centered = false;
             for (Player player : players) {
                 if (!player.isDead()) {
                     tileMap.setPosition(
                         GamePanel.WIDTH / 2 - player.getx(),
                         GamePanel.HEIGHT / 2 - player.gety()
                     );
+                    centered = true;
                     break;
                 }
+            }
+            if (!centered) {
+                tileMap.setPosition(0, 0);
             }
         }
 
@@ -244,7 +252,7 @@ public class Level1State extends GameState {
         tileMap.draw(g);
         for (Player player : players) {
             player.draw(g);
-            if (player.isAwaitingRespawn()) {
+            if (player.isAwaitingRespawn() && !player.isDeathAnimationComplete()) {
                 long elapsed = (System.nanoTime() - player.getRespawnTimer()) / 1_000_000;
                 int secondsLeft = (int) ((10_000 - elapsed) / 1000);
                 if (secondsLeft >= 0) {
@@ -261,7 +269,7 @@ public class Level1State extends GameState {
 
     public void keyPressed(int k) {
         Player localPlayer = getPlayer(localPlayerId);
-        if (localPlayer != null && (localPlayer.isDead() || localPlayer.isHoldingFlag())) {
+        if (localPlayer != null && (localPlayer.isDead() || localPlayer.isHoldingFlag() || localPlayer.isDescendingFlag())) {
             return;
         }
 
@@ -296,7 +304,7 @@ public class Level1State extends GameState {
 
     public void keyReleased(int k) {
         Player localPlayer = getPlayer(localPlayerId);
-        if (localPlayer != null && (localPlayer.isDead() || localPlayer.isHoldingFlag())) {
+        if (localPlayer != null && (localPlayer.isDead() || localPlayer.isHoldingFlag() || localPlayer.isDescendingFlag())) {
             return;
         }
 

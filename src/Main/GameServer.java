@@ -109,7 +109,10 @@ public class GameServer {
                         player.isDead(),
                         player.isHoldingFlag(),
                         player.isAwaitingRespawn(),
-                        player.getRespawnTimer()
+                        player.getRespawnTimer(),
+                        player.isDeathAnimationComplete(),
+                        player.isDescendingFlag(),
+                        player.isDescentComplete()
                     ));
                 }
             }
@@ -165,10 +168,10 @@ public class GameServer {
                 while (true) {
                     try {
                         Object obj = in.readObject();
-                        //System.out.println("Received object from client " + playerId + ": " + obj.getClass().getSimpleName());
+                        System.out.println("Received object from client " + playerId + ": " + obj.getClass().getSimpleName());
                         if (obj instanceof NetworkData.PlayerInput && gameState != null) {
                             NetworkData.PlayerInput input = (NetworkData.PlayerInput) obj;
-                            //System.out.println("Received input from client " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
+                            System.out.println("Received input from client " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
                             gameState.updatePlayerInput(playerId, input);
                         } else {
                             System.err.println("Unexpected object received from client " + playerId + ": " + obj);
@@ -235,9 +238,9 @@ public class GameServer {
 
         public void sendKeepAlive() {
             try {
-                out.writeObject("KEEP_ALIVE");
+                out.writeObject("Alive");
                 out.flush();
-                System.out.println("Sent KEEP_ALIVE to client " + playerId);
+                System.out.println("Sent KEEP to client " + playerId);
             } catch (IOException e) {
                 System.err.println("Error sending keep-alive to client " + playerId + ": " + e.getMessage());
                 e.printStackTrace();

@@ -57,7 +57,7 @@ public class GameClient {
             }
             long currentTime = System.nanoTime();
             if (!input.equals(lastInput) || (currentTime - lastInputTime) / 1_000_000 >= 100) {
-                //System.out.println("Sending input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
+                System.out.println("Sending input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
                 out.writeObject(input);
                 out.flush();
                 lastInput = new NetworkData.PlayerInput();
@@ -80,7 +80,7 @@ public class GameClient {
             while (connected) {
                 try {
                     Object obj = in.readObject();
-                    //System.out.println("Received object for player " + playerId + ": " + obj.getClass().getSimpleName());
+                    System.out.println("Received object for player " + playerId + ": " + obj.getClass().getSimpleName());
                     if (obj instanceof String) {
                         if (obj.equals("START_GAME")) {
                             System.out.println("Received START_GAME signal for player " + playerId);
@@ -92,20 +92,20 @@ public class GameClient {
                         }
                     } else if (obj instanceof GameStateData) {
                         GameStateData state = (GameStateData) obj;
-                        //System.out.println("Received GameStateData for player " + playerId + ": players=" + state.players.size() + ", enemies=" + state.enemies.size());
+                        System.out.println("Received GameStateData for player " + playerId + ": players=" + state.players.size() + ", enemies=" + state.enemies.size());
                         Level1State level = (Level1State) gamePanel.getGameStateManager().getGameStates().get(GameStateManager.INLEVEL);
                         for (int i = 0; i < state.players.size() && i < level.getPlayers().size(); i++) {
                             Player player = level.getPlayer(i);
                             PlayerData data = state.players.get(i);
-                            if (i != playerId || data.dead || data.holdingFlag) {
+                            if (i != playerId || data.dead || data.holdingFlag || data.descendingFlag) {
                                 player.setPosition(data.x, data.y);
                             }
                             player.setHealth(data.health);
                             player.setScore(data.score);
                             player.setFacingRight(data.facingRight);
                             player.setHoldingFlag(data.holdingFlag);
-                            if (data.awaitingRespawn) {
-                                player.setHealth(0); // Ensure dead state
+                            if (data.dead) {
+                                player.setHealth(0);
                             }
                         }
                         level.updateGameState(state);
