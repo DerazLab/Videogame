@@ -133,7 +133,7 @@ public class TileMap {
 
     public int getType(int row, int col) {
     if (row < 0 || row >= numRows || col < 0 || col >= numCols) {
-        return Tile.BLOCKED; // Trata las posiciones fuera de límites como bloqueadas
+        return Tile.NORMAL; // Trata las posiciones fuera de límites como bloqueadas
     }
 	//System.out.println("Row: " + row + "MaxRows: " + numRows);
 	//System.out.println("Col: " + col + "MaxCols: " + numCols);
