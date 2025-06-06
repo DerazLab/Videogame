@@ -24,6 +24,7 @@ public class Level1State extends GameState {
     private Font countdownFont;
 
     private Goomba goomba, goomba2, goomba3, goomba4, goomba5, goomba6;
+    private Goomba g, g1, g2, g3, g4, g5, g6, g7, g8;
 
     public Level1State(GameStateManager gsm) {
         this.gsm = gsm;
@@ -55,11 +56,44 @@ public class Level1State extends GameState {
         goomba = new Goomba(tileMap, 300, 100);
         enemies.add(goomba);
 
-        goomba2 = new Goomba(tileMap, 310, 200);
+        goomba2 = new Goomba(tileMap, 700, 50);
         enemies.add(goomba2);
 
-        goomba3 = new Goomba(tileMap, 320, 200);
+        goomba3 = new Goomba(tileMap, 800, 50);
         enemies.add(goomba3);
+
+        goomba4 = new Goomba(tileMap, 750, 50);
+        enemies.add(goomba4);
+
+        goomba5 = new Goomba(tileMap, 900, 50);
+        enemies.add(goomba5);
+
+        goomba6 = new Goomba(tileMap, 950, 50);
+        enemies.add(goomba6);
+
+        g = new Goomba(tileMap, 1050, 50);
+        enemies.add(g);
+
+        g2 = new Goomba(tileMap, 1100, 50);
+        enemies.add(g2);
+
+        g3 = new Goomba(tileMap, 1250, 50);
+        enemies.add(g3);
+
+        g4 = new Goomba(tileMap, 1350, 50);
+        enemies.add(g4);
+
+        g5 = new Goomba(tileMap, 1550, 50);
+        enemies.add(g5);
+
+        g6 = new Goomba(tileMap, 1600, 50);
+        enemies.add(g6);
+
+        g7 = new Goomba(tileMap, 1800, 50);
+        enemies.add(g7);
+
+        g8 = new Goomba(tileMap, 1850, 50);
+        enemies.add(g8);
         // -------------------------------------------------------------
 
 
