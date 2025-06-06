@@ -36,21 +36,6 @@ public class Game {
         window.setResizable(false);
         window.pack();
         window.setVisible(true);
-        playSound("01.-Ground-Theme.wav");
-
-        private void playSound(String soundFile) {
-        try {
-            String soundPath = "/Resources/Sounds/" + soundFile;
-            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(
-                getClass().getResourceAsStream(soundPath)
-            );
-            Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.start();
-        } catch (Exception e) {
-            System.err.println("Error playing sound " + soundFile + ": " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
+        
     }
 }
