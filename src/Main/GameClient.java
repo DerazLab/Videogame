@@ -80,7 +80,7 @@ public class GameClient {
             while (connected) {
                 try {
                     Object obj = in.readObject();
-                    System.out.println("Received object for player " + playerId + ": " + obj.getClass().getSimpleName());
+                    //System.out.println("Received object for player " + playerId + ": " + obj.getClass().getSimpleName());
                     if (obj instanceof String) {
                         if (obj.equals("START_GAME")) {
                             System.out.println("Received START_GAME signal for player " + playerId);
@@ -92,7 +92,7 @@ public class GameClient {
                         }
                     } else if (obj instanceof GameStateData) {
                         GameStateData state = (GameStateData) obj;
-                        System.out.println("Received GameStateData for player " + playerId + ": players=" + state.players.size() + ", enemies=" + state.enemies.size());
+                        //System.out.println("Received GameStateData for player " + playerId + ": players=" + state.players.size() + ", enemies=" + state.enemies.size());
                         Level1State level = (Level1State) gamePanel.getGameStateManager().getGameStates().get(GameStateManager.INLEVEL);
                         for (int i = 0; i < state.players.size() && i < level.getPlayers().size(); i++) {
                             Player player = level.getPlayer(i);
