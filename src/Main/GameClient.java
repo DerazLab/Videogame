@@ -30,11 +30,11 @@ public class GameClient {
             connected = true;
 
             playerId = (Integer) in.readObject();
-            System.out.println("Connected to server with player ID: " + playerId);
+            System.out.println("Conectado con la id " + playerId);
 
             new Thread(this::receiveGameState).start();
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Failed to connect to server: " + e.getMessage());
+            System.err.println("Fallo al conectarse al servidor: " + e.getMessage());
             e.printStackTrace();
             connected = false;
         }
@@ -57,7 +57,6 @@ public class GameClient {
             }
             long currentTime = System.nanoTime();
             if (!input.equals(lastInput) || (currentTime - lastInputTime) / 1_000_000 >= 100) {
-                System.out.println("Sending input for player " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
                 out.writeObject(input);
                 out.flush();
                 lastInput = new NetworkData.PlayerInput();
@@ -69,7 +68,6 @@ public class GameClient {
                 lastInputTime = currentTime;
             }
         } catch (IOException e) {
-            System.err.println("Failed to send input for player " + playerId + ": " + e.getMessage());
             e.printStackTrace();
             disconnect();
         }
@@ -80,19 +78,18 @@ public class GameClient {
             while (connected) {
                 try {
                     Object obj = in.readObject();
-                    System.out.println("Received object for player " + playerId + ": " + obj.getClass().getSimpleName());
+                    System.out.println("Objeto recibido: " + obj.getClass().getSimpleName());
                     if (obj instanceof String) {
                         if (obj.equals("START_GAME")) {
-                            System.out.println("Received START_GAME signal for player " + playerId);
+                            System.out.println("Juego iniciado");
                             gamePanel.getGameStateManager().setState(GameStateManager.INLEVEL);
                         } else if (obj.equals("KEEP_ALIVE")) {
-                            System.out.println("Received KEEP_ALIVE for player " + playerId);
+                            System.out.println("Latido recibido del jugador " + playerId);
                         } else {
-                            System.err.println("Unexpected string received for player " + playerId + ": " + obj);
+                            System.err.println("String recibido: " + obj);
                         }
                     } else if (obj instanceof GameStateData) {
                         GameStateData state = (GameStateData) obj;
-                        System.out.println("Received GameStateData for player " + playerId + ": players=" + state.players.size() + ", enemies=" + state.enemies.size());
                         Level1State level = (Level1State) gamePanel.getGameStateManager().getGameStates().get(GameStateManager.INLEVEL);
                         for (int i = 0; i < state.players.size() && i < level.getPlayers().size(); i++) {
                             Player player = level.getPlayer(i);
@@ -111,25 +108,23 @@ public class GameClient {
                         level.updateGameState(state);
                     } else if (obj instanceof StateChange) {
                         StateChange stateChange = (StateChange) obj;
-                        System.out.println("Received StateChange for player " + playerId + ": newState=" + stateChange.newState);
+                        System.out.println("Cambio de estado recibido, nuevo estado: " + stateChange.newState);
                         gamePanel.getGameStateManager().setState(stateChange.newState);
                     } else {
-                        System.err.println("Unexpected object received for player " + playerId + ": " + obj);
+                        System.err.println("Objeto recibido del jugador " + playerId + ": " + obj);
                     }
                 } catch (SocketTimeoutException e) {
-                    System.out.println("Socket timeout for player " + playerId + ": waiting for server data");
+                    System.out.println("Timeout del jugador " + playerId + ": no se recibieron datos en 10 segundos");
                     continue;
                 } catch (EOFException e) {
-                    System.err.println("Server connection closed unexpectedly for player " + playerId + ": EOF reached");
+                    System.err.println("Conexión perdida " + playerId + ": Error EOF");
                     disconnect();
                     break;
                 } catch (IOException e) {
-                    System.err.println("IO error while receiving game state for player " + playerId + ": " + e.getMessage());
                     e.printStackTrace();
                     disconnect();
                     break;
                 } catch (ClassNotFoundException e) {
-                    System.err.println("Class not found while receiving game state for player " + playerId + ": " + e.getMessage());
                     e.printStackTrace();
                 }
             }
@@ -145,17 +140,16 @@ public class GameClient {
 			if (out != null) out.close();
 			if (in != null) in.close();
 			if (socket != null) socket.close();
-			System.out.println("Client " + playerId + " disconnected cleanly");
+			System.out.println("Cliente " + playerId + " desconectado");
 		} catch (IOException e) {
-			System.err.println("Error closing client connection for player " + playerId + ": " + e.getMessage());
+			System.err.println("Error desconectando al jugador " + playerId + ": " + e.getMessage());
 			e.printStackTrace();
 		}
 		GameStateManager gsm = gamePanel.getGameStateManager();
 		if (gsm != null) {
 			gsm.setState(GameStateManager.INMENU);
 		} else {
-			System.out.println("GSM is null, cannot set state to INMENU");
-        // Opcionalmente, podrías agregar código para mostrar un mensaje de error al usuario
+			System.out.println("gsm no inicializado, reinicia el juego");
 		}
 	}
 
