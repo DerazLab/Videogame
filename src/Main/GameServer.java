@@ -34,24 +34,24 @@ public class GameServer {
     public void start() {
         try {
             serverSocket = new ServerSocket(port);
-            System.out.println("Server started on port " + port);
+            System.out.println("Servidor creado en el puerto " + port);
 
             while (clients.size() < 2) {
                 try {
                     Socket clientSocket = serverSocket.accept();
-                    System.out.println("New client connected: " + clientSocket.getInetAddress().getHostAddress() + ", assigning player ID: " + (clients.size() + 1));
+                    System.out.println("Nuevo cliente conectado: " + clientSocket.getInetAddress().getHostAddress() + ", asignando id: " + (clients.size() + 1));
                     ClientHandler client = new ClientHandler(clientSocket, clients.size() + 1);
                     clients.add(client);
                     playerIds.add(clients.size());
                     new Thread(client).start();
                     menuState.clientConnected();
                 } catch (IOException e) {
-                    System.err.println("Error accepting client connection: " + e.getMessage());
+                    System.err.println("Error recibiendo al cliente: " + e.getMessage());
                     e.printStackTrace();
                 }
             }
         } catch (IOException e) {
-            System.err.println("Failed to start server on port " + port + ": " + e.getMessage());
+            System.err.println("Fallo al iniciar el server");
             e.printStackTrace();
         }
     }
@@ -62,7 +62,7 @@ public class GameServer {
                 client.sendGameStart();
             }
         } catch (Exception e) {
-            System.err.println("Error notifying game start: " + e.getMessage());
+            System.err.println("No se envio el inicio del juego: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -73,9 +73,9 @@ public class GameServer {
             for (ClientHandler client : clients) {
                 client.sendStateChange(stateChange);
             }
-            System.out.println("Notified state change to clients: newState=" + newState);
+            System.out.println("Cambio de estado enviado: " + newState);
         } catch (Exception e) {
-            System.err.println("Error notifying state change: " + e.getMessage());
+            System.err.println("No se pudo enviar el cambio de estado: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -123,7 +123,7 @@ public class GameServer {
                 client.sendGameState(state);
             }
         } catch (Exception e) {
-            System.err.println("Error broadcasting game state: " + e.getMessage());
+            System.err.println("Error enviando estado: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -142,7 +142,6 @@ public class GameServer {
                 out = new ObjectOutputStream(socket.getOutputStream());
                 in = new ObjectInputStream(socket.getInputStream());
             } catch (IOException e) {
-                System.err.println("Error initializing streams for client " + playerId + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -151,9 +150,8 @@ public class GameServer {
             try {
                 out.writeObject(stateChange);
                 out.flush();
-                System.out.println("Sent StateChange to client " + playerId + ": newState=" + stateChange.newState);
+                System.out.println("Cambio de estado enviado: " + stateChange.newState);
             } catch (IOException e) {
-                System.err.println("Error sending state change to client " + playerId + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -161,65 +159,58 @@ public class GameServer {
         @Override
 public void run() {
     try {
-        out.writeObject(playerId); // Envía el ID del jugador al cliente
+        out.writeObject(playerId); 
         out.flush();
         System.out.println("Sent player ID " + playerId + " to client");
 
         while (true) {
             try {
-                Object obj = in.readObject(); // Lee el objeto del stream
-                System.out.println("Received object from client " + playerId + ": " + obj.getClass().getSimpleName());
+                Object obj = in.readObject();
                 if (obj instanceof NetworkData.PlayerInput && gameState != null) {
                     NetworkData.PlayerInput input = (NetworkData.PlayerInput) obj;
-                    System.out.println("Received input from client " + playerId + ": left=" + input.left + ", right=" + input.right + ", up=" + input.up + ", down=" + input.down + ", jumping=" + input.jumping);
                     gameState.updatePlayerInput(playerId, input); // Actualiza el estado del juego
                 } else {
-                    System.err.println("Unexpected object received from client " + playerId + ": " + obj);
+                    System.err.println("Objeto recibido: " + obj);
                 }
             } catch (SocketTimeoutException e) {
-                System.out.println("Socket timeout for client " + playerId + ": " + e.getMessage());
-                continue; // Continúa esperando datos
+                System.out.println("Timeout del cliente " + playerId + ": " + e.getMessage());
+                continue; 
             } catch (EOFException e) {
-                System.out.println("Client " + playerId + " disconnected: EOF reached");
-                break; // Sale del bucle si el cliente se desconecta
+                System.out.println("Cliente " + playerId + " desconectado");
+                break; 
             } catch (OptionalDataException e) {
-                System.err.println("OptionalDataException for client " + playerId + ": " + e.getMessage());
                 if (e.eof) {
-                    System.out.println("EOF reached for client " + playerId);
-                    break; // Sale si el stream terminó
+                    break; 
                 } else {
-                    System.err.println("Primitive data found: length=" + e.length);
-                    // Aquí podrías manejar datos primitivos si fuera necesario
+                    e.printStackTrace();    
                 }
             } catch (IOException e) {
-                System.err.println("IO error for client " + playerId + ": " + e.getMessage());
+                System.err.println("Error IO");
                 e.printStackTrace();
-                break; // Sale si hay un error de E/S
+                break; 
             } catch (ClassNotFoundException e) {
-                System.err.println("Class not found for client " + playerId + ": " + e.getMessage());
+                System.err.println("Clase no encontrada");
                 e.printStackTrace();
             }
         }
     } catch (IOException e) {
-        System.err.println("Initial connection error for client " + playerId + ": " + e.getMessage());
+        System.err.println("Error de conexion inicial");
         e.printStackTrace();
     } finally {
-        // Limpieza al desconectar
         clients.remove(this);
         if (gameState != null) {
             Player player = gameState.getPlayer(playerId);
             if (player != null) {
                 gameState.getPlayers().remove(player);
-                System.out.println("Removed player " + playerId + " from game state");
+                System.out.println("Eliminado jugador " + playerId + " del estado");
             }
         }
         try {
             if (out != null) out.close();
             if (in != null) in.close();
             if (socket != null) socket.close();
-            System.out.println("Client " + playerId + " connection closed cleanly");
+            System.out.println("Conexion del cliente " + playerId + " cerrada");
         } catch (IOException e) {
-            System.err.println("Error closing connection for client " + playerId + ": " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -230,7 +221,6 @@ public void run() {
                 out.writeObject(state);
                 out.flush();
             } catch (IOException e) {
-                System.err.println("Error sending game state to client " + playerId + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -239,9 +229,8 @@ public void run() {
             try {
                 out.writeObject("START_GAME");
                 out.flush();
-                System.out.println("Sent START_GAME to client " + playerId);
+                System.out.println("Enviado inicio al cliente " + playerId);
             } catch (IOException e) {
-                System.err.println("Error sending game start to client " + playerId + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -250,9 +239,7 @@ public void run() {
             try {
                 out.writeObject("Alive");
                 out.flush();
-                System.out.println("Sent KEEP to client " + playerId);
             } catch (IOException e) {
-                System.err.println("Error sending keep-alive to client " + playerId + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }

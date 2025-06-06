@@ -57,7 +57,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     public void run() {
     init();
 
-    long targetTime = 1000000000 / FPS; // Target time per frame in nanoseconds
+    long targetTime = 1000000000 / FPS; 
     long lastTime = System.nanoTime();
 
     while (running) {
@@ -69,16 +69,14 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             draw();
             drawToScreen();
             lastTime += targetTime;
-            // Sleep for a small amount to prevent busy-waiting
             try {
                 Thread.sleep(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         } else {
-            // Sleep to avoid consuming too much CPU
             try {
-                Thread.sleep(1);
+                Thread.sleep(1); // zzzz
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
