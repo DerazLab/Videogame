@@ -191,20 +191,21 @@ public class Level1State extends GameState {
 
         // Check for level completion
         if (gsm.isHost() && flagpole.isActive()) {
-            boolean allHolding = true;
-            for (Player player : players) {
-                if (!player.isDead() && !player.isHoldingFlag()) {
-                    allHolding = false;
-                    break;
-                }
-            }
-            if (allHolding && players.size() > 1) {
-                flagpole.setActive(false);
-                // Transition to next state or display win screen
-                gsm.setState(GameStateManager.INMENU); // Example: return to menu
-                // Alternatively, create a new GameState for level completion
-            }
-        }
+			boolean allHolding = true;
+			for (Player player : players) {
+				if (!player.isDead() && !player.isHoldingFlag()) {
+					allHolding = false;
+					break;
+				}
+			}
+			if (allHolding && players.size() > 1) {
+				flagpole.setActive(false);
+				gsm.setState(GameStateManager.INMENU); // Cambia el estado del host
+				if (server != null) {
+					server.notifyStateChange(GameStateManager.INMENU); // Notifica a los clientes
+				}
+			}
+		}
 
         Player localPlayer = getPlayer(localPlayerId);
         if (localPlayer != null) {

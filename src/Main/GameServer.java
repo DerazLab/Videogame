@@ -64,6 +64,19 @@ public class GameServer {
             e.printStackTrace();
         }
     }
+	
+	public void notifyStateChange(int newState) {
+        try {
+            StateChange stateChange = new StateChange(newState);
+            for (ClientHandler client : clients) {
+                client.sendStateChange(stateChange);
+            }
+            System.out.println("Notified state change to clients: newState=" + newState);
+        } catch (Exception e) {
+            System.err.println("Error notifying state change: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
     public void broadcastGameState() {
         if (gameState == null) {
@@ -119,6 +132,17 @@ public class GameServer {
                 in = new ObjectInputStream(socket.getInputStream());
             } catch (IOException e) {
                 System.err.println("Error initializing streams for client " + playerId + ": " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+		
+		public void sendStateChange(StateChange stateChange) {
+            try {
+                out.writeObject(stateChange);
+                out.flush();
+                System.out.println("Sent StateChange to client " + playerId + ": newState=" + stateChange.newState);
+            } catch (IOException e) {
+                System.err.println("Error sending state change to client " + playerId + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }

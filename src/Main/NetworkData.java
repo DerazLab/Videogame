@@ -61,4 +61,12 @@ public class NetworkData {
             return Objects.hash(left, right, up, down, jumping);
         }
     }
+	
+	public static class StateChange implements Serializable {
+        public int newState;
+
+        public StateChange(int newState) {
+            this.newState = newState;
+        }
+    }
 }
