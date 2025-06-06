@@ -155,41 +155,43 @@ public class Level1State extends GameState {
 
     public void update() {
         boolean allDead = true;
-        boolean allAnimationsComplete = true;
+    boolean allAnimationsComplete = true;
+    for (Player player : players) {
+        player.update();
+        if (!player.isDead()) {
+            allDead = false;
+        }
+        if (!player.isDeathAnimationComplete()) {
+            allAnimationsComplete = false;
+        }
+    }
+
+    // Verificar condición de Game Over primero
+    if (gsm.isHost() && allDead && allAnimationsComplete) {
+        gsm.setState(GameStateManager.GAMEOVER);
+        if (server != null) {
+            server.notifyStateChange(GameStateManager.GAMEOVER);
+        }
+        return;
+    }
+
+    // Verificar condición de victoria solo si no están todos muertos
+    if (gsm.isHost() && !allDead) {
+        boolean allDescended = true;
         for (Player player : players) {
-            player.update();
-            if (!player.isDead()) {
-                allDead = false;
-            }
-            if (!player.isDeathAnimationComplete()) {
-                allAnimationsComplete = false;
+            if (!player.isDead() && !player.isDescentComplete()) {
+                allDescended = false;
+                break;
             }
         }
-
-        if (gsm.isHost() && allDead && allAnimationsComplete) {
-            gsm.setState(GameStateManager.GAMEOVER);
+        if (allDescended) {
+            gsm.setState(GameStateManager.WIN);
             if (server != null) {
-                server.notifyStateChange(GameStateManager.GAMEOVER);
+                server.notifyStateChange(GameStateManager.WIN);
             }
             return;
         }
-
-        if (gsm.isHost()) {
-            boolean allDescended = true;
-            for (Player player : players) {
-                if (!player.isDead() && !player.isDescentComplete()) {
-                    allDescended = false;
-                    break;
-                }
-            }
-            if (allDescended && players.size() >= 1) {
-                gsm.setState(GameStateManager.WIN);
-                if (server != null) {
-                    server.notifyStateChange(GameStateManager.WIN);
-                }
-                return;
-            }
-        }
+    }
 
         Iterator<Enemy> enemyIterator = enemies.iterator();
         while (enemyIterator.hasNext()) {
