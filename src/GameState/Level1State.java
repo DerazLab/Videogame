@@ -25,6 +25,7 @@ public class Level1State extends GameState {
     public long levelStartTime;
     public boolean timerStopped;
     public long levelEndTime;
+    public long elapsedTime;
 
     private Goomba goomba, goomba2, goomba3, goomba4, goomba5, goomba6;
     private Goomba g, g1, g2, g3, g4, g5, g6, g7, g8;
@@ -106,6 +107,7 @@ public class Level1State extends GameState {
             levelStartTime = System.nanoTime();
             timerStopped = false;
             levelEndTime = 0;
+            elapsedTime = 0;
         }
     }
 
@@ -141,10 +143,14 @@ public class Level1State extends GameState {
     }
 
     public long getCurrentTime() {
-        if (timerStopped) {
-            return (levelEndTime - levelStartTime) / 1_000_000_000;
+        if (gsm.isHost()) {
+            if (timerStopped) {
+                return (levelEndTime - levelStartTime) / 1_000_000_000;
+            }
+            elapsedTime = (System.nanoTime() - levelStartTime) / 1_000_000_000; // Update elapsedTime for host
+            return elapsedTime;
         }
-        return (System.nanoTime() - levelStartTime) / 1_000_000_000;
+        return elapsedTime; // Clients use synchronized time
     }
 
     public void updatePlayerInput(int playerId, NetworkData.PlayerInput input) {
@@ -196,10 +202,11 @@ public class Level1State extends GameState {
                 index++;
             }
         }
-        
+        // Update timer from server
         levelStartTime = state.levelStartTime;
         timerStopped = state.timerStopped;
         levelEndTime = state.levelEndTime;
+        elapsedTime = state.elapsedTime;
     }
 
     public void updateClientInput() {
@@ -231,6 +238,7 @@ public class Level1State extends GameState {
         if (gsm.isHost() && allDead && allAnimationsComplete) {
             timerStopped = true;
             levelEndTime = System.nanoTime();
+            elapsedTime = (levelEndTime - levelStartTime) / 1_000_000_000; // Update elapsedTime
             gsm.setState(GameStateManager.GAMEOVER);
             if (server != null) {
                 server.notifyStateChange(GameStateManager.GAMEOVER);
@@ -238,15 +246,16 @@ public class Level1State extends GameState {
             return;
         }
 
-        if (gsm.isHost() && !allDead && allDescended) {
-            timerStopped = true;
-            levelEndTime = System.nanoTime();
-            gsm.setState(GameStateManager.WIN);
-            if (server != null) {
-                server.notifyStateChange(GameStateManager.WIN);
-            }
-            return;
+    if (gsm.isHost() && !allDead && allDescended) {
+        timerStopped = true;
+        levelEndTime = System.nanoTime();
+        elapsedTime = (levelEndTime - levelStartTime) / 1_000_000_000; // Update elapsedTime
+        gsm.setState(GameStateManager.WIN);
+        if (server != null) {
+            server.notifyStateChange(GameStateManager.WIN);
         }
+        return;
+    }
 
         Iterator<Enemy> enemyIterator = enemies.iterator();
         while (enemyIterator.hasNext()) {
@@ -322,11 +331,10 @@ public class Level1State extends GameState {
         for (Enemy enemy : enemies) {
             enemy.draw(g);
         }
-        // Dibujar Timer
+        // Draw synchronized timer
         g.setFont(countdownFont);
         g.setColor(Color.WHITE);
-        long currentTime = timerStopped ? (levelEndTime - levelStartTime) / 1_000_000_000 : (System.nanoTime() - levelStartTime) / 1_000_000_000;
-        g.drawString("Time: " + currentTime + "s", 10, 20);
+        g.drawString("Time: " + getCurrentTime() + "s", 10, 20);
     }
 
     public void keyPressed(int k) {

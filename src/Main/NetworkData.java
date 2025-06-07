@@ -8,14 +8,16 @@ public class NetworkData {
     public static class GameStateData implements Serializable {
         public List<PlayerData> players;
         public List<EnemyData> enemies;
-        public long levelStartTime; 
-        public boolean timerStopped; 
-        public long levelEndTime; 
+        public long levelStartTime;
+        public boolean timerStopped;
+        public long levelEndTime;
+        public long elapsedTime; // Added to store synchronized elapsed time in seconds
 
         public GameStateData() {
             this.levelStartTime = System.nanoTime();
             this.timerStopped = false;
             this.levelEndTime = 0;
+            this.elapsedTime = 0;
         }
     }
 
