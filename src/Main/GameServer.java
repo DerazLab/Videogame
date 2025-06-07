@@ -119,7 +119,7 @@ public class GameServer {
             for (Enemy enemy : gameState.getEnemies()) {
                 state.enemies.add(new EnemyData(enemy.getx(), enemy.gety(), enemy.getHealth(), enemy.isDead()));
             }
-            // Add timer data
+            // Agregar timer data
             state.levelStartTime = gameState.getCurrentTime() * 1_000_000_000;
             state.timerStopped = gameState.timerStopped;
             state.levelEndTime = gameState.levelEndTime;

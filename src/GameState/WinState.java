@@ -25,10 +25,10 @@ public class WinState extends GameState {
     }
 
     public void init() {
-        // Get completion time from Level1State
+        // Obtener el tiempo
         Level1State level = (Level1State) gsm.getGameStates().get(GameStateManager.INLEVEL);
         completionTime = level.getCurrentTime();
-        // Update best time if necessary
+        // Actualizar al mejor tiempo
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("Resources/best_time.dat"))) {
             long bestTime = ois.readLong();
             if (completionTime < bestTime) {

@@ -11,7 +11,7 @@ public class NetworkData {
         public long levelStartTime;
         public boolean timerStopped;
         public long levelEndTime;
-        public long elapsedTime; // Added to store synchronized elapsed time in seconds
+        public long elapsedTime; 
 
         public GameStateData() {
             this.levelStartTime = System.nanoTime();

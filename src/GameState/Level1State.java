@@ -147,10 +147,10 @@ public class Level1State extends GameState {
             if (timerStopped) {
                 return (levelEndTime - levelStartTime) / 1_000_000_000;
             }
-            elapsedTime = (System.nanoTime() - levelStartTime) / 1_000_000_000; // Update elapsedTime for host
+            elapsedTime = (System.nanoTime() - levelStartTime) / 1_000_000_000; // Update elapsedTime
             return elapsedTime;
         }
-        return elapsedTime; // Clients use synchronized time
+        return elapsedTime; //Clientes usan timer sincronizado
     }
 
     public void updatePlayerInput(int playerId, NetworkData.PlayerInput input) {
@@ -202,7 +202,7 @@ public class Level1State extends GameState {
                 index++;
             }
         }
-        // Update timer from server
+        // Actualizar timer del server
         levelStartTime = state.levelStartTime;
         timerStopped = state.timerStopped;
         levelEndTime = state.levelEndTime;
@@ -238,7 +238,7 @@ public class Level1State extends GameState {
         if (gsm.isHost() && allDead && allAnimationsComplete) {
             timerStopped = true;
             levelEndTime = System.nanoTime();
-            elapsedTime = (levelEndTime - levelStartTime) / 1_000_000_000; // Update elapsedTime
+            elapsedTime = (levelEndTime - levelStartTime) / 1_000_000_000; // Actualizar elapsedTime
             gsm.setState(GameStateManager.GAMEOVER);
             if (server != null) {
                 server.notifyStateChange(GameStateManager.GAMEOVER);
@@ -249,7 +249,7 @@ public class Level1State extends GameState {
     if (gsm.isHost() && !allDead && allDescended) {
         timerStopped = true;
         levelEndTime = System.nanoTime();
-        elapsedTime = (levelEndTime - levelStartTime) / 1_000_000_000; // Update elapsedTime
+        elapsedTime = (levelEndTime - levelStartTime) / 1_000_000_000; // actualizar elapsed time
         gsm.setState(GameStateManager.WIN);
         if (server != null) {
             server.notifyStateChange(GameStateManager.WIN);
@@ -331,7 +331,7 @@ public class Level1State extends GameState {
         for (Enemy enemy : enemies) {
             enemy.draw(g);
         }
-        // Draw synchronized timer
+        // Dibujar timer sincronizado
         g.setFont(countdownFont);
         g.setColor(Color.WHITE);
         g.drawString("Time: " + getCurrentTime() + "s", 10, 20);

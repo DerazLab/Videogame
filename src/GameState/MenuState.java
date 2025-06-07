@@ -32,7 +32,7 @@ public class MenuState extends GameState {
                 server = new GameServer(12345, this);
                 new Thread(server::start).start();
             }
-            // Load best time
+            // Cargar mejor tiempo
             loadBestTime();
         } catch (Exception e) {
             e.printStackTrace();
@@ -85,7 +85,7 @@ public class MenuState extends GameState {
         }
         g.setColor(Color.WHITE);
         g.drawString("Jugadores conectados: " + connectedPlayers, 20, 180);
-        // Display best time
+        // Mostrar mejor tiempo
         String bestTimeStr = bestTime == Long.MAX_VALUE ? "Best Time: None" : "Best Time: " + bestTime + "s";
         g.drawString(bestTimeStr, 20, 200);
     }
