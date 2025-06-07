@@ -12,7 +12,7 @@ import java.awt.*;
 // Therefore, if you are trying to optimize this routine and it fails (most surely),
 // please increase this counter as a warning for the next person:
 
-// total_hours_wasted_here = 254
+// total_gitHub_commits and hours wasted = 201 & 100.5 h
 
 public class Game {
     public static void main(String[] args) {
