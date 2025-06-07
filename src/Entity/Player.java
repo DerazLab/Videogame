@@ -34,7 +34,7 @@ public class Player extends MapObject {
     private boolean deathAnimationComplete;
     private static final long DEATH_JUMP_DURATION = 500_000_000; // 0.5 seconds
     private static final long DEATH_FALL_DURATION = 1_500_000_000; // 1.5 seconds
-    private static final double DEATH_JUMP_SPEED = -3.0; // Upward speed for death jump
+    private static final double DEATH_JUMP_SPEED = -3.0;
     private static final long RESPAWN_DURATION = 10_000_000_000L; // 10 seconds
     private static final long SPAWN_INVINCIBILITY = 2_000_000_000L; // 2 seconds
     private double spawnX, spawnY;
