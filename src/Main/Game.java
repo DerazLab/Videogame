@@ -4,6 +4,16 @@ import javax.swing.*;
 import java.awt.*;
 //javac -d bin src/GameState/*.java src/Main/*.java src/TileMap/*.java src/Entity/*.java src/Entity/Enemies/*.java
 //java -cp bin;Resources Main.Game
+
+// Dear programmer:
+// When I wrote this code, only god and I knew how it worked.
+// Now, only god knows it!
+
+// Therefore, if you are trying to optimize this routine and it fails (most surely),
+// please increase this counter as a warning for the next person:
+
+// total_hours_wasted_here = 254
+
 public class Game {
     public static void main(String[] args) {
         int port = 12345; 
