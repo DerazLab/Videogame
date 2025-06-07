@@ -4,6 +4,7 @@ import TileMap.Background;
 import Main.GameServer;
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.io.*;
 
 public class MenuState extends GameState {
     private Background bg;
@@ -14,8 +15,9 @@ public class MenuState extends GameState {
     private Font font;
     private GameServer server;
     private int connectedPlayers = 1;
-    private long lastKeepAlive; 
+    private long lastKeepAlive;
     private static final long KEEP_ALIVE_INTERVAL = 2000;
+    private long bestTime = Long.MAX_VALUE; // Initialize with max value
 
     public MenuState(GameStateManager gsm) {
         this.gsm = gsm;
@@ -30,6 +32,8 @@ public class MenuState extends GameState {
                 server = new GameServer(12345, this);
                 new Thread(server::start).start();
             }
+            // Load best time
+            loadBestTime();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -40,14 +44,26 @@ public class MenuState extends GameState {
         connectedPlayers++;
     }
 
-    public void init() {}
+    private void loadBestTime() {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("Resources/best_time.dat"))) {
+            bestTime = ois.readLong();
+        } catch (FileNotFoundException e) {
+            System.out.println("No previous best time found, initializing with MAX_VALUE");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void init() {
+        loadBestTime();
+    }
 
     public void update() {
         bg.update();
         if (gsm.isHost() && server != null) {
             long currentTime = System.currentTimeMillis();
             if (currentTime - lastKeepAlive >= KEEP_ALIVE_INTERVAL) {
-                server.broadcastGameState(); 
+                server.broadcastGameState();
                 lastKeepAlive = currentTime;
             }
         }
@@ -69,6 +85,9 @@ public class MenuState extends GameState {
         }
         g.setColor(Color.WHITE);
         g.drawString("Jugadores conectados: " + connectedPlayers, 20, 180);
+        // Display best time
+        String bestTimeStr = bestTime == Long.MAX_VALUE ? "Best Time: None" : "Best Time: " + bestTime + "s";
+        g.drawString(bestTimeStr, 20, 200);
     }
 
     private void select() {

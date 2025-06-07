@@ -101,11 +101,11 @@ public class GameServer {
                 Player player = gameState.getPlayer(i);
                 if (player != null) {
                     state.players.add(new PlayerData(
-                        player.getx(), 
-                        player.gety(), 
-                        player.getHealth(), 
-                        player.getScore(), 
-                        player.isFacingRight(), 
+                        player.getx(),
+                        player.gety(),
+                        player.getHealth(),
+                        player.getScore(),
+                        player.isFacingRight(),
                         player.isDead(),
                         player.isHoldingFlag(),
                         player.isAwaitingRespawn(),
@@ -119,6 +119,10 @@ public class GameServer {
             for (Enemy enemy : gameState.getEnemies()) {
                 state.enemies.add(new EnemyData(enemy.getx(), enemy.gety(), enemy.getHealth(), enemy.isDead()));
             }
+            // Add timer data
+            state.levelStartTime = gameState.getCurrentTime() * 1_000_000_000;
+            state.timerStopped = gameState.timerStopped;
+            state.levelEndTime = gameState.levelEndTime;
             for (ClientHandler client : clients) {
                 client.sendGameState(state);
             }
@@ -157,64 +161,64 @@ public class GameServer {
         }
 
         @Override
-public void run() {
-    try {
-        out.writeObject(playerId); 
-        out.flush();
-        System.out.println("Sent player ID " + playerId + " to client");
-
-        while (true) {
+        public void run() {
             try {
-                Object obj = in.readObject();
-                if (obj instanceof NetworkData.PlayerInput && gameState != null) {
-                    NetworkData.PlayerInput input = (NetworkData.PlayerInput) obj;
-                    gameState.updatePlayerInput(playerId, input); // Actualiza el estado del juego
-                } else {
-                    System.err.println("Objeto recibido: " + obj);
-                }
-            } catch (SocketTimeoutException e) {
-                System.out.println("Timeout del cliente " + playerId + ": " + e.getMessage());
-                continue; 
-            } catch (EOFException e) {
-                System.out.println("Cliente " + playerId + " desconectado");
-                break; 
-            } catch (OptionalDataException e) {
-                if (e.eof) {
-                    break; 
-                } else {
-                    e.printStackTrace();    
+                out.writeObject(playerId);
+                out.flush();
+                System.out.println("Sent player ID " + playerId + " to client");
+
+                while (true) {
+                    try {
+                        Object obj = in.readObject();
+                        if (obj instanceof NetworkData.PlayerInput && gameState != null) {
+                            NetworkData.PlayerInput input = (NetworkData.PlayerInput) obj;
+                            gameState.updatePlayerInput(playerId, input);
+                        } else {
+                            System.err.println("Objeto recibido: " + obj);
+                        }
+                    } catch (SocketTimeoutException e) {
+                        System.out.println("Timeout del cliente " + playerId + ": " + e.getMessage());
+                        continue;
+                    } catch (EOFException e) {
+                        System.out.println("Cliente " + playerId + " desconectado");
+                        break;
+                    } catch (OptionalDataException e) {
+                        if (e.eof) {
+                            break;
+                        } else {
+                            e.printStackTrace();
+                        }
+                    } catch (IOException e) {
+                        System.err.println("Error IO");
+                        e.printStackTrace();
+                        break;
+                    } catch (ClassNotFoundException e) {
+                        System.err.println("Clase no encontrada");
+                        e.printStackTrace();
+                    }
                 }
             } catch (IOException e) {
-                System.err.println("Error IO");
+                System.err.println("Error de conexion inicial");
                 e.printStackTrace();
-                break; 
-            } catch (ClassNotFoundException e) {
-                System.err.println("Clase no encontrada");
-                e.printStackTrace();
+            } finally {
+                clients.remove(this);
+                if (gameState != null) {
+                    Player player = gameState.getPlayer(playerId);
+                    if (player != null) {
+                        gameState.getPlayers().remove(player);
+                        System.out.println("Eliminado jugador " + playerId + " del estado");
+                    }
+                }
+                try {
+                    if (out != null) out.close();
+                    if (in != null) in.close();
+                    if (socket != null) socket.close();
+                    System.out.println("Conexion del cliente " + playerId + " cerrada");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
-    } catch (IOException e) {
-        System.err.println("Error de conexion inicial");
-        e.printStackTrace();
-    } finally {
-        clients.remove(this);
-        if (gameState != null) {
-            Player player = gameState.getPlayer(playerId);
-            if (player != null) {
-                gameState.getPlayers().remove(player);
-                System.out.println("Eliminado jugador " + playerId + " del estado");
-            }
-        }
-        try {
-            if (out != null) out.close();
-            if (in != null) in.close();
-            if (socket != null) socket.close();
-            System.out.println("Conexion del cliente " + playerId + " cerrada");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-}
 
         public void sendGameState(GameStateData state) {
             try {
