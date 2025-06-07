@@ -17,7 +17,7 @@ public class MenuState extends GameState {
     private int connectedPlayers = 1;
     private long lastKeepAlive;
     private static final long KEEP_ALIVE_INTERVAL = 2000;
-    private long bestTime = Long.MAX_VALUE; // Initialize with max value
+    private long bestTime = Long.MAX_VALUE; //Inicializar con maxvalue
 
     public MenuState(GameStateManager gsm) {
         this.gsm = gsm;
@@ -48,7 +48,7 @@ public class MenuState extends GameState {
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("Resources/best_time.dat"))) {
             bestTime = ois.readLong();
         } catch (FileNotFoundException e) {
-            System.out.println("No previous best time found, initializing with MAX_VALUE");
+            System.out.println("No mejor tiempo encontrado...Inicializando");
         } catch (IOException e) {
             e.printStackTrace();
         }
