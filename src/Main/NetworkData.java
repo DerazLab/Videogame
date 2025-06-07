@@ -8,9 +8,9 @@ public class NetworkData {
     public static class GameStateData implements Serializable {
         public List<PlayerData> players;
         public List<EnemyData> enemies;
-        public long levelStartTime; // Added for timer synchronization
-        public boolean timerStopped; // Added to indicate if timer should stop
-        public long levelEndTime; // Added to store end time for clients
+        public long levelStartTime; 
+        public boolean timerStopped; 
+        public long levelEndTime; 
 
         public GameStateData() {
             this.levelStartTime = System.nanoTime();
