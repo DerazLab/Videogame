@@ -196,7 +196,7 @@ public class Level1State extends GameState {
                 index++;
             }
         }
-        // Update timer from server
+        
         levelStartTime = state.levelStartTime;
         timerStopped = state.timerStopped;
         levelEndTime = state.levelEndTime;
@@ -322,7 +322,7 @@ public class Level1State extends GameState {
         for (Enemy enemy : enemies) {
             enemy.draw(g);
         }
-        // Draw timer at top of screen
+        // Dibujar Timer
         g.setFont(countdownFont);
         g.setColor(Color.WHITE);
         long currentTime = timerStopped ? (levelEndTime - levelStartTime) / 1_000_000_000 : (System.nanoTime() - levelStartTime) / 1_000_000_000;
