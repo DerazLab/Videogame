@@ -26,7 +26,7 @@ public class Player extends MapObject {
     private long descentStartTime;
     private double flagpoleX;
     private double groundY;
-    private static final double DESCENT_SPEED = 1.0; // Pixels per frame
+    private static final double DESCENT_SPEED = 1.0;
     private boolean deathJump;
     private long deathJumpTimer;
     private long respawnTimer;
